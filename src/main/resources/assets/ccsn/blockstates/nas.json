@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "ccsn:block/nas" },
+    "facing=east":  { "model": "ccsn:block/nas", "y": 90 },
+    "facing=south": { "model": "ccsn:block/nas", "y": 180 },
+    "facing=west":  { "model": "ccsn:block/nas", "y": 270 }
+  }
+}

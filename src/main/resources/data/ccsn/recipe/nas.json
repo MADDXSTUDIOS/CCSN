@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "III",
+    "DMD",
+    "IRI"
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "D": { "item": "computercraft:disk_drive" },
+    "M": { "item": "computercraft:wired_modem" },
+    "R": { "item": "minecraft:redstone" }
+  },
+  "result": {
+    "id": "ccsn:nas",
+    "count": 1
+  }
+}

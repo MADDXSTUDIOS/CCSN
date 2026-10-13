@@ -1,0 +1,36 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+issueTrackerURL = "https://github.com/MADDXSTUDIOS/ccsn/issues"
+
+[[mods]]
+modId = "ccsn"
+version = "0.1.0"
+displayName = "CC: Servers & Networking"
+displayURL = "https://github.com/MADDXSTUDIOS/ccsn"
+authors = "xPhoenixLRDx"
+description = '''
+Server racks, blade servers, NAS storage and enterprise networking
+for CC:Tweaked.
+'''
+
+[[dependencies.ccsn]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.ccsn]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.ccsn]]
+modId = "computercraft"
+type = "required"
+versionRange = "[1.120.0,1.121.0)"
+ordering = "AFTER"
+side = "BOTH"

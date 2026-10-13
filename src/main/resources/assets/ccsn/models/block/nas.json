@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "ccsn:block/nas_front",
+    "side": "ccsn:block/nas_side",
+    "top": "ccsn:block/nas_top",
+    "particle": "ccsn:block/nas_side"
+  }
+}

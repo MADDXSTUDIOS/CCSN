@@ -1,0 +1,8 @@
+{
+  "block.ccsn.nas": "Network Attached Storage",
+  "tooltip.ccsn.nas.label": "Label: %s",
+  "tooltip.ccsn.nas.id": "ID: %s...",
+  "tooltip.ccsn.nas.empty": "Unformatted",
+  "ccsn.configuration.nas": "NAS",
+  "ccsn.configuration.capacity": "NAS capacity (bytes)"
+}
