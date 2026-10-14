@@ -1,56 +1,62 @@
 # CC: Servers & Networking
 
-Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage,
-network switches, server racks and tiered hardware.
+Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage with
+hot-swap drives, and (coming) network switches, server racks and blades.
 
-**Status: v0.1.0, first block (NAS) only. Untested build.**
+**Status: v0.2.0 (test build).** Requires CC:Tweaked 1.120.x.
 
-## First-time setup (Windows)
+## Getting it
 
-1. Install **IntelliJ IDEA Community** (free) from jetbrains.com.
-2. Install **Java 21** (Eclipse Temurin 21 JDK from adoptium.net).
-3. Download the official **NeoForge 1.21.1 ModDevGradle MDK**:
-   github.com/NeoForgeMDKs/MDK-1.21.1-ModDevGradle → Code → Download ZIP.
-4. From the MDK zip, copy these into this `ccsn` folder:
-   - `gradlew`
-   - `gradlew.bat`
-   - the whole `gradle` folder
-   (These are Gradle's launcher files. I couldn't generate them from my end.)
-5. In IntelliJ: **File → Open** → pick the `ccsn` folder. Let it import
-   (first time downloads Minecraft and takes a while).
-6. Open the **Gradle** panel (elephant icon, right side) →
-   `ccsn → Tasks → mod development → runClient`.
+Every push to `main` is built by GitHub Actions and published on the
+[Releases page](https://github.com/MADDXSTUDIOS/CCSN/releases) as a test build.
+Drop the jar in a NeoForge 1.21.1 instance alongside CC:Tweaked 1.120.x.
 
-Minecraft launches with CC:Tweaked and CC: Servers & Networking loaded.
+## NAS and drives
 
-### If the import fails with a version error
-Open the MDK's `build.gradle` and `gradle.properties` and copy over:
-- the `net.neoforged.moddev` version → into this project's `build.gradle`
-- `neo_version` → into this project's `gradle.properties`
+- **NAS**: a chassis with 4 hot-swap drive bays. Right-click it with a drive to
+  slot it into the first free bay, or right-click empty-handed to open the bay GUI.
+- **Drives**: Iron (T1, 4 MiB), Gold (T2, 16 MiB), Diamond (T3, 64 MiB).
+  Capacities are in the server config. A drive gets its own storage the first
+  time it goes into a NAS and keeps its files wherever it goes.
+- **Chipsets**: Iron, Gold and Diamond chipsets are the crafting ingredient for
+  every tiered item.
+- Every drive mounts on every attached computer (directly or over wired
+  modems) as `nas`, `nas2`, `nas3`...
+- Breaking the NAS pops the drives out, like a chest.
 
-Then reload Gradle. Anything else, paste the error back to Claude.
-
-## Testing the NAS
-
-1. Creative inventory → **CC: Servers & Networking** tab → **NAS**.
-2. Place it next to an Advanced Computer.
-3. Copy `lua/nastest.lua` onto the computer (or paste it in with `edit nastest`)
-   and run `nastest`.
-4. Break the NAS, place it somewhere else and check your test file survived.
-5. Also test it over a wired modem network, and with two computers on the
-   same network: both should see the same files.
+Files are stored on the server in `world/computercraft/ccsn_drives/<drive id>/`.
 
 ## NAS Lua API (peripheral type `nas`)
 
+Bays are numbered 1-4, top to bottom.
+
 | Function | Returns |
 |---|---|
-| `getId()` | Unique ID (survives breaking the block) |
-| `getLabel()` / `setLabel(text?)` | Label, max 32 chars |
-| `getMountPath()` | Where it's mounted on this computer, e.g. `nas` |
-| `getCapacity()` | Total bytes (server config, default 32 MiB) |
-| `getFreeSpace()` | Free bytes |
+| `getBayCount()` | `4` |
+| `getDrive(bay)` | `{ bay, tier, capacity, free, mount, id, label }` or `nil` if empty |
+| `getDrives()` | Table of the above, keyed by bay number |
+| `getMountPath(bay)` | Where that drive is mounted on this computer, e.g. `"nas2"` |
+| `setDriveLabel(bay, text?)` | Label a drive (shows as the item name) |
+| `getLabel()` / `setLabel(text?)` | The NAS's own label |
 
-Files are stored on the server in `world/computercraft/ccsn_nas/<id>/`.
+**Events** (sent to every attached computer):
 
-## Building a release jar
-Gradle panel → `build → build`. The jar lands in `build/libs/`.
+| Event | Arguments |
+|---|---|
+| `nas_drive_insert` | peripheral name, bay |
+| `nas_drive_eject` | peripheral name, bay |
+
+## Testing
+
+Get the test program onto a computer:
+```
+wget https://raw.githubusercontent.com/MADDXSTUDIOS/CCSN/main/lua/nastest.lua nastest
+```
+- `nastest` writes and reads a file on every drive in every attached NAS.
+- `nastest watch` prints insert/eject events live while you swap drives.
+
+## Development
+
+- `tools/gen_assets.py` generates every texture, model and the NAS blockstate.
+- `tools/preview_models.py out.png` renders the real model files to check them.
+- See `DESIGN.md` for the full plan and roadmap.

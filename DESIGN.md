@@ -113,7 +113,7 @@ computers straight into the switch.
 | Version | Contents |
 |---|---|
 | v0.1 | NAS ✅ tested in-game (v0.1.3) |
-| v0.2 | NAS drive bays and T1–T3 drives |
+| v0.2 | NAS drive bays, 3D drives, chipsets, bay GUI, hot-swap 🧪 (built, awaiting test) |
 | v0.3 | Network Switch, coloured cables (bundling and disguise), patch cables, Wall Jack, Patch Panel |
 | v0.4 | Server Rack and T1–T3 blades |
 | v0.5 | Router, Wireless Access Point, Print Server, cable trays and conduit |
