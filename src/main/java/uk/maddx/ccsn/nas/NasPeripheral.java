@@ -7,29 +7,37 @@ import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import uk.maddx.ccsn.CCSNConfig;
+import uk.maddx.ccsn.drive.DriveItem;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 
 /**
  * Lua side of the NAS. Peripheral type: "nas".
  *
- * When a computer attaches (directly or via a wired modem), the NAS's storage
- * is mounted into that computer's filesystem at /nas (or /nas2, /nas3... if
- * taken). Several computers can share one NAS at the same time.
+ * Every drive in the NAS is mounted on every attached computer as its own
+ * folder: nas, nas2, nas3... Drives can be swapped while computers are running;
+ * attached computers get "nas_drive_insert" / "nas_drive_eject" events with
+ * (peripheralName, bay).
+ *
+ * Bays are numbered 1-4 in Lua, top to bottom.
  */
 public final class NasPeripheral implements IPeripheral {
     public static final String TYPE = "nas";
     private static final int MAX_MOUNTS = 64;
+    private static final int BAYS = NasBlockEntity.BAYS;
 
     private final NasBlockEntity nas;
-    private final Map<IComputerAccess, String> mounts = new ConcurrentHashMap<>();
-    private @Nullable WritableMount mount;
+    /** For each attached computer, where each bay is mounted (null = not mounted). */
+    private final Map<IComputerAccess, String[]> computers = new HashMap<>();
+    private final WritableMount[] mounts = new WritableMount[BAYS];
+    private final UUID[] mountIds = new UUID[BAYS];
 
     NasPeripheral(NasBlockEntity nas) {
         this.nas = nas;
@@ -50,81 +58,153 @@ public final class NasPeripheral implements IPeripheral {
         return nas;
     }
 
-    private synchronized @Nullable WritableMount mount() {
-        if (mount == null) {
-            Level level = nas.getLevel();
-            MinecraftServer server = level == null ? null : level.getServer();
-            if (server == null) return null;
-            mount = ComputerCraftAPI.createSaveDirMount(
-                server,
-                "ccsn_nas/" + nas.getOrCreateId(),
-                CCSNConfig.NAS_CAPACITY.get()
-            );
-        }
-        return mount;
+    // ---- Mounting ----
+
+    private @Nullable WritableMount mountFor(int bay) {
+        UUID id = nas.getBayId(bay);
+        if (id == null || !(nas.getDrive(bay).getItem() instanceof DriveItem drive)) return null;
+        if (mounts[bay] != null && id.equals(mountIds[bay])) return mounts[bay];
+
+        Level level = nas.getLevel();
+        MinecraftServer server = level == null ? null : level.getServer();
+        if (server == null) return null;
+        mounts[bay] = ComputerCraftAPI.createSaveDirMount(server, "ccsn_drives/" + id, drive.capacity());
+        mountIds[bay] = id;
+        return mounts[bay];
     }
 
-    @Override
-    public void attach(IComputerAccess computer) {
-        WritableMount storage = mount();
-        if (storage == null) return;
-        // CC won't pick a free name for us, so number them like disk drives do:
-        // nas, nas2, nas3...
+    /** CC won't pick a free name for us, so number them like disk drives do: nas, nas2, nas3... */
+    private static @Nullable String mountOn(IComputerAccess computer, WritableMount mount) {
         for (int i = 1; i <= MAX_MOUNTS; i++) {
-            String path = computer.mountWritable(i == 1 ? "nas" : "nas" + i, storage);
-            if (path != null) {
-                mounts.put(computer, path);
-                return;
-            }
+            String path = computer.mountWritable(i == 1 ? "nas" : "nas" + i, mount);
+            if (path != null) return path;
+        }
+        return null;
+    }
+
+    @Override
+    public synchronized void attach(IComputerAccess computer) {
+        String[] paths = new String[BAYS];
+        computers.put(computer, paths);
+        for (int bay = 0; bay < BAYS; bay++) {
+            WritableMount mount = mountFor(bay);
+            if (mount != null) paths[bay] = mountOn(computer, mount);
         }
     }
 
     @Override
-    public void detach(IComputerAccess computer) {
-        String path = mounts.remove(computer);
-        if (path != null) computer.unmount(path);
+    public synchronized void detach(IComputerAccess computer) {
+        String[] paths = computers.remove(computer);
+        if (paths == null) return;
+        for (String path : paths) {
+            if (path != null) computer.unmount(path);
+        }
+    }
+
+    /** A drive went in or came out (server thread). Re-mount it everywhere and tell the computers. */
+    synchronized void onBayChanged(int bay) {
+        mounts[bay] = null;
+        mountIds[bay] = null;
+        WritableMount mount = mountFor(bay);
+
+        for (Map.Entry<IComputerAccess, String[]> entry : computers.entrySet()) {
+            IComputerAccess computer = entry.getKey();
+            String[] paths = entry.getValue();
+            if (paths[bay] != null) {
+                computer.unmount(paths[bay]);
+                paths[bay] = null;
+            }
+            if (mount != null) paths[bay] = mountOn(computer, mount);
+            computer.queueEvent(mount != null ? "nas_drive_insert" : "nas_drive_eject",
+                computer.getAttachmentName(), bay + 1);
+        }
     }
 
     // ---- Lua API ----
 
-    /** Unique ID of this NAS. Stays the same if the block is broken and re-placed. */
-    @LuaFunction
-    public final String getId() {
-        return nas.getOrCreateId().toString();
+    private static int checkBay(int bay) throws LuaException {
+        if (bay < 1 || bay > BAYS) throw new LuaException("Bay must be between 1 and " + BAYS);
+        return bay - 1;
     }
 
+    private synchronized @Nullable Map<String, Object> describe(IComputerAccess computer, int bay) throws LuaException {
+        ItemStack stack = nas.getDrive(bay);
+        if (!(stack.getItem() instanceof DriveItem drive)) return null;
+
+        Map<String, Object> info = new HashMap<>();
+        info.put("bay", bay + 1);
+        info.put("tier", drive.tier());
+        info.put("capacity", drive.capacity());
+        UUID id = nas.getBayId(bay);
+        if (id != null) info.put("id", id.toString());
+        String label = DriveItem.getLabel(stack);
+        if (label != null) info.put("label", label);
+        String[] paths = computers.get(computer);
+        if (paths != null && paths[bay] != null) info.put("mount", paths[bay]);
+
+        WritableMount mount = mountFor(bay);
+        if (mount != null) {
+            try {
+                info.put("free", mount.getRemainingSpace());
+            } catch (IOException e) {
+                throw new LuaException("Could not read drive free space: " + e.getMessage());
+            }
+        }
+        return info;
+    }
+
+    /** Number of drive bays (4). */
+    @LuaFunction
+    public final int getBayCount() {
+        return BAYS;
+    }
+
+    /**
+     * Info about the drive in a bay, or nil if it's empty:
+     * { bay, tier, capacity, free, mount, id, label }
+     */
+    @LuaFunction
+    public final @Nullable Map<String, Object> getDrive(IComputerAccess computer, int bay) throws LuaException {
+        return describe(computer, checkBay(bay));
+    }
+
+    /** Info about every drive, keyed by bay number. Empty bays are missing. */
+    @LuaFunction
+    public final Map<Integer, Map<String, Object>> getDrives(IComputerAccess computer) throws LuaException {
+        Map<Integer, Map<String, Object>> result = new HashMap<>();
+        for (int bay = 0; bay < BAYS; bay++) {
+            Map<String, Object> info = describe(computer, bay);
+            if (info != null) result.put(bay + 1, info);
+        }
+        return result;
+    }
+
+    /** Where a bay's drive is mounted on this computer, e.g. "nas2", or nil. */
+    @LuaFunction
+    public final synchronized @Nullable String getMountPath(IComputerAccess computer, int bay) throws LuaException {
+        String[] paths = computers.get(computer);
+        return paths == null ? null : paths[checkBay(bay)];
+    }
+
+    /** Set or clear (pass nothing) a drive's label, max 32 characters. The label shows as the item name. */
+    @LuaFunction(mainThread = true)
+    public final void setDriveLabel(int bay, Optional<String> label) throws LuaException {
+        int i = checkBay(bay);
+        ItemStack stack = nas.getDrive(i);
+        if (!(stack.getItem() instanceof DriveItem)) throw new LuaException("No drive in bay " + bay);
+        DriveItem.setLabel(stack, label.orElse(null));
+        nas.setChanged();
+    }
+
+    /** The NAS's own label (survives breaking the block). */
     @LuaFunction
     public final @Nullable String getLabel() {
         return nas.getLabel();
     }
 
-    /** Set or clear (pass nothing) the label, max 32 characters. */
+    /** Set or clear (pass nothing) the NAS label, max 32 characters. */
     @LuaFunction(mainThread = true)
     public final void setLabel(Optional<String> label) {
         nas.setLabel(label.orElse(null));
-    }
-
-    /** Where the NAS is mounted on the calling computer, e.g. "nas". */
-    @LuaFunction
-    public final @Nullable String getMountPath(IComputerAccess computer) {
-        return mounts.get(computer);
-    }
-
-    /** Total capacity in bytes. */
-    @LuaFunction
-    public final long getCapacity() {
-        return CCSNConfig.NAS_CAPACITY.get();
-    }
-
-    /** Free space remaining in bytes. */
-    @LuaFunction
-    public final long getFreeSpace() throws LuaException {
-        WritableMount storage = mount();
-        if (storage == null) throw new LuaException("NAS storage is unavailable");
-        try {
-            return storage.getRemainingSpace();
-        } catch (IOException e) {
-            throw new LuaException("Could not read NAS free space: " + e.getMessage());
-        }
     }
 }
