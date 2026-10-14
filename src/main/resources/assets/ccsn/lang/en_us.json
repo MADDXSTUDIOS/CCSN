@@ -1,5 +1,6 @@
 {
-  "block.ccsn.nas": "Network Attached Storage",
+  "itemGroup.ccsn": "CC: Servers & Networking",
+  "block.ccsn.nas": "NAS (Network Attached Storage)",
   "tooltip.ccsn.nas.label": "Label: %s",
   "tooltip.ccsn.nas.id": "ID: %s...",
   "tooltip.ccsn.nas.empty": "Unformatted",

@@ -4,6 +4,8 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.SoundType;
@@ -62,8 +64,23 @@ public final class ModRegistry {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NasBlockEntity>> NAS_BLOCK_ENTITY =
         BLOCK_ENTITIES.register("nas", () -> BlockEntityType.Builder.of(NasBlockEntity::new, NAS.get()).build(null));
 
+    // ---- Creative tab ----
+
+    private static final DeferredRegister<CreativeModeTab> TABS =
+        DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main", () ->
+        CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.ccsn"))
+            .icon(() -> NAS_ITEM.get().getDefaultInstance())
+            .displayItems((params, output) -> {
+                output.accept(NAS_ITEM.get());
+            })
+            .build());
+
     static void register(IEventBus modBus) {
         COMPONENTS.register(modBus);
+        TABS.register(modBus);
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);

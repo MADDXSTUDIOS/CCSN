@@ -32,7 +32,7 @@ Then reload Gradle. Anything else, paste the error back to Claude.
 
 ## Testing the NAS
 
-1. Creative inventory → Functional Blocks → **Network Attached Storage**.
+1. Creative inventory → **CC: Servers & Networking** tab → **NAS**.
 2. Place it next to an Advanced Computer.
 3. Copy `lua/nastest.lua` onto the computer (or paste it in with `edit nastest`)
    and run `nastest`.
