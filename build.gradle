@@ -55,6 +55,14 @@ dependencies {
     runtimeOnly "cc.tweaked:cc-tweaked-${minecraft_version}-forge:${cc_version}"
 }
 
+// Single source of truth for the version: gradle.properties -> neoforge.mods.toml
+tasks.named('processResources', ProcessResources) {
+    inputs.property 'mod_version', mod_version
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand(mod_version: mod_version)
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }

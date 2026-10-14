@@ -5,7 +5,7 @@ issueTrackerURL = "https://github.com/MADDXSTUDIOS/CCSN/issues"
 
 [[mods]]
 modId = "ccsn"
-version = "0.2.0"
+version = "${mod_version}"
 displayName = "CC: Servers & Networking"
 displayURL = "https://github.com/MADDXSTUDIOS/CCSN"
 authors = "xPhoenixLRDx"
