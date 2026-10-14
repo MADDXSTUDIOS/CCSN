@@ -20,11 +20,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * Lua side of the NAS. Peripheral type: "nas".
  *
  * When a computer attaches (directly or via a wired modem), the NAS's storage
- * is mounted into that computer's filesystem at /nas (or /nas1, /nas2... if
+ * is mounted into that computer's filesystem at /nas (or /nas2, /nas3... if
  * taken). Several computers can share one NAS at the same time.
  */
 public final class NasPeripheral implements IPeripheral {
     public static final String TYPE = "nas";
+    private static final int MAX_MOUNTS = 64;
 
     private final NasBlockEntity nas;
     private final Map<IComputerAccess, String> mounts = new ConcurrentHashMap<>();
@@ -67,8 +68,15 @@ public final class NasPeripheral implements IPeripheral {
     public void attach(IComputerAccess computer) {
         WritableMount storage = mount();
         if (storage == null) return;
-        String path = computer.mountWritable("nas", storage);
-        if (path != null) mounts.put(computer, path);
+        // CC won't pick a free name for us, so number them like disk drives do:
+        // nas, nas2, nas3...
+        for (int i = 1; i <= MAX_MOUNTS; i++) {
+            String path = computer.mountWritable(i == 1 ? "nas" : "nas" + i, storage);
+            if (path != null) {
+                mounts.put(computer, path);
+                return;
+            }
+        }
     }
 
     @Override
