@@ -14,7 +14,8 @@ branding is done with a resource pack in the user's own modpack.
 - **Safety net:** if blade code can't hook into CC internals, only blades
   switch off (the rack GUI says "incompatible CC version"). Everything else
   keeps working.
-- **Public API first:** NAS, switch, cables and jacks use CC's public API.
+- **Public API first:** NAS, switch, cables and jacks use CC's public API
+  (wired nodes and the wired element capability).
   Only blades need CC internals.
 - **Config everything:** capacities and recipes are configurable so pack
   makers can balance them.
@@ -60,42 +61,58 @@ branding is done with a resource pack in the user's own modpack.
 - **Front model:** per-blade LEDs (green running, red crashed, off).
 - Uses CC internals, so the version lock and safety net apply.
 
-### Network Switch (v0.3)
-- **Half-height (1U) block**, 8 ports in two rows of 4.
-- **Port 1 = uplink** (amber).
-- Each port: status LED (green active, red disabled, dark empty) and a
-  VLAN colour pixel.
-- **GUI:** per-port on/off, labels, traffic counters, VLAN colour.
-- **VLANs:** only ports with the same colour talk to each other.
-- **Peripheral:** Lua can toggle ports, read stats and so on.
-- Block network cables connect to the **back** only (uplink); individual
-  ports take **patch cables**.
+### How networking works (v0.3)
 
-### Network Cable (block cable, v0.3)
-- Thin (about 3 px) coloured strands.
-- **Up to 4 colours in ONE block space.** Right-click an existing cable with
-  another colour to add it. Strands sit side by side.
-- **Each colour only connects to the same colour.** Different networks share
-  a block space but never merge.
-- **Disguise:** right-click with a full plain block (stone bricks, planks,
-  concrete...) and the cable looks exactly like that block and behaves as a
-  solid block. Wrench + sneak-right-click removes the disguise. Holding the
-  wrench shows disguised cables as outlines.
+Everything is still **one normal CC wired network**. Computers and devices
+(printers, speakers, monitors, NAS...) plug in with CC's own grey cable and
+wired modems, and every computer sees every device exactly as it would with
+plain CC cable. Our blocks are the tidy office infrastructure in between:
+
+- **CC grey cable = the patch lead** from a device to the wall.
+- **Our coloured cable = the structured cabling** in walls, floors and trunking.
+- **The switch = the hub** in the comms cupboard that joins the runs.
+
+Rules:
+- **Our cable never touches anything of CC's directly.** No grey cable, no
+  modems. It isn't exposed to CC at all.
+- **The wall jack is the only bridge.** Its back plugs into our cable behind
+  it; its front takes CC grey cable or a wired modem.
+- **Colours keep runs apart; they are not separate networks.** Like real
+  ethernet, each jack has its own run back to the switch. Runs sharing a block
+  never merge mid-wall, so the switch knows which jack is on which port.
+- **The switch joins runs** into one network by default. Switches can chain
+  to extend the network. VLANs are an optional extra to keep rooms apart.
+- A run can also go straight jack to jack, no switch (point to point).
+- Our own blocks (NAS, switch, rack) will later plug straight into our cable
+  without a CC modem: CC's public API lets a wired node share peripherals.
+
+### Network Cable (block)
+- Thin (3 px) strand, 16 dye colours, one item per colour.
+- Same colour joins same colour; different colours never join.
+- **Later (bundling):** up to 4 colours in ONE block space.
+- **Later (disguise):** right-click with a full plain block (stone bricks,
+  planks, concrete...) and the cable looks and behaves like that block. Wrench
+  + sneak-right-click removes it; holding the wrench shows hidden runs.
   - Full plain blocks only (no chests, machines, panes, slabs).
-  - Connected-texture blocks from other mods may not connect perfectly.
 
-### Patch Cable (item, v0.3)
-- Not a block: a hanging cable between two points (Immersive Engineering
-  style), max about 16 blocks.
-- Click a **specific port** (detected by where on the face you click, like the
-  vanilla chiseled bookshelf), then click the other end.
-- One patch cable = one port.
+### Wall Jack
+- Faceplate on a wall, floor or ceiling, fitted to the block behind it.
+- Back: our cable directly behind (including, later, disguised cable in a wall).
+- Front: CC grey cable or a CC wired modem.
+- Coloured label strip shows which run it's on (grey = not on a run).
 
-### Wall Jack and Patch Panel (v0.3)
-- **Wall Jack:** small plate on a wall or floor. Connects to the cable block
-  **directly behind it** (including disguised cables inside the wall).
-  Patch cable from jack to computer.
-- **Patch Panel:** the comms-cupboard version, many jacks in one (half-height).
+### Network Switch
+- The hub: runs come in on several faces, so it has more ports than one cable
+  block can carry. Switch to switch extends the network.
+- Front: status LED per port. Port 1 uplink.
+- **Extras (later build):** GUI with per-port on/off, labels, traffic counters,
+  VLAN colours; Lua peripheral to control ports and read stats.
+
+### Patch Panel
+- Comms-cupboard version of many jacks in one (half-height).
+
+### Hanging patch cables
+- Dropped for now: grey cable plus our runs cover everything. Maybe later for looks.
 
 ### Later
 - **v0.5:** Router/Gateway, Wireless Access Point, Print Server, cable trays
@@ -106,9 +123,9 @@ branding is done with a resource pack in the user's own modpack.
 
 ## Typical office
 
-Computer → patch cable → Wall Jack → coloured cable inside a disguised wall →
-Patch Panel → short patch cable → Switch port. Small setups can patch
-computers straight into the switch.
+Computer + modem → grey cable → Wall Jack → coloured run inside a disguised
+wall → Switch (or Patch Panel → Switch) in the comms cupboard. Every computer
+sees every device as on a normal CC network. Small setups can run jack to jack.
 
 ## Roadmap
 
@@ -116,7 +133,10 @@ computers straight into the switch.
 |---|---|
 | v0.1 | NAS ✅ tested in-game (v0.1.3) |
 | v0.2 | NAS drive bays, 3D drives, chipsets, bay GUI, hot-swap ✅ tested in-game (v0.2.1) |
-| v0.3 | Network Switch, coloured cables (bundling and disguise), patch cables, Wall Jack, Patch Panel |
+| v0.3.0 | Coloured network cable + Wall Jack 🧪 |
+| v0.3.x | Network Switch (hub, ports, chaining) |
+| v0.3.x | Bundling (4 runs per block) + disguise + wrench |
+| v0.3.x | Patch Panel, switch extras (VLANs, GUI, Lua) |
 | v0.4 | Server Rack and T1–T3 blades |
 | v0.5 | Router, Wireless Access Point, Print Server, cable trays and conduit |
 | Later | Fibre, badge reader, chunk-loading racks |

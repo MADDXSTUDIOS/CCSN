@@ -1,0 +1,113 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "front": "ccsn:block/wall_jack",
+    "side": "ccsn:block/wall_jack_side",
+    "label": "ccsn:block/wall_jack_label",
+    "particle": "ccsn:block/wall_jack_side"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        3,
+        7
+      ],
+      "to": [
+        12,
+        13,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            4,
+            3,
+            12,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            4,
+            3,
+            12,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            0,
+            3,
+            2,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            0,
+            3,
+            2,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#side",
+          "uv": [
+            4,
+            0,
+            12,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#side",
+          "uv": [
+            4,
+            0,
+            12,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        11,
+        6.75
+      ],
+      "to": [
+        11,
+        12,
+        7
+      ],
+      "faces": {
+        "north": {
+          "texture": "#label",
+          "tintindex": 0
+        },
+        "east": {
+          "texture": "#label",
+          "tintindex": 0
+        },
+        "west": {
+          "texture": "#label",
+          "tintindex": 0
+        },
+        "up": {
+          "texture": "#label",
+          "tintindex": 0
+        },
+        "down": {
+          "texture": "#label",
+          "tintindex": 0
+        }
+      }
+    }
+  ]
+}

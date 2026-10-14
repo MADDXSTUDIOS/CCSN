@@ -1,6 +1,7 @@
 package uk.maddx.ccsn;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.Util;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -8,13 +9,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -25,7 +29,14 @@ import uk.maddx.ccsn.nas.NasBlock;
 import uk.maddx.ccsn.nas.NasBlockEntity;
 import uk.maddx.ccsn.nas.NasItem;
 import uk.maddx.ccsn.nas.NasMenu;
+import uk.maddx.ccsn.network.NetworkCableBlock;
+import uk.maddx.ccsn.network.NetworkCableBlockEntity;
+import uk.maddx.ccsn.network.NetworkCableItem;
+import uk.maddx.ccsn.network.WallJackBlock;
+import uk.maddx.ccsn.network.WallJackBlockEntity;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static uk.maddx.ccsn.CCSN.MOD_ID;
@@ -104,6 +115,46 @@ public final class ModRegistry {
     public static final DeferredHolder<MenuType<?>, MenuType<NasMenu>> NAS_MENU =
         MENUS.register("nas", () -> new MenuType<>(NasMenu::new, FeatureFlags.VANILLA_SET));
 
+    // ---- Networking ----
+
+    public static final DeferredBlock<NetworkCableBlock> NETWORK_CABLE = BLOCKS.register("network_cable", () -> new NetworkCableBlock(
+        BlockBehaviour.Properties.of()
+            .mapColor(MapColor.WOOL)
+            .strength(0.8f)
+            .sound(SoundType.WOOL)
+            .noOcclusion()
+            .pushReaction(PushReaction.DESTROY)
+    ));
+
+    /** One item per dye colour, all placing {@link #NETWORK_CABLE}. */
+    public static final Map<DyeColor, DeferredItem<NetworkCableItem>> NETWORK_CABLE_ITEMS =
+        Util.make(new EnumMap<>(DyeColor.class), items -> {
+            for (DyeColor colour : DyeColor.values()) {
+                items.put(colour, ITEMS.register("network_cable_" + colour.getSerializedName(),
+                    () -> new NetworkCableItem(NETWORK_CABLE.get(), colour, new Item.Properties())));
+            }
+        });
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NetworkCableBlockEntity>> NETWORK_CABLE_BLOCK_ENTITY =
+        BLOCK_ENTITIES.register("network_cable",
+            () -> BlockEntityType.Builder.of(NetworkCableBlockEntity::new, NETWORK_CABLE.get()).build(null));
+
+    public static final DeferredBlock<WallJackBlock> WALL_JACK = BLOCKS.register("wall_jack", () -> new WallJackBlock(
+        BlockBehaviour.Properties.of()
+            .mapColor(MapColor.QUARTZ)
+            .strength(0.8f)
+            .sound(SoundType.STONE)
+            .noOcclusion()
+            .pushReaction(PushReaction.DESTROY)
+    ));
+
+    public static final DeferredItem<BlockItem> WALL_JACK_ITEM =
+        ITEMS.register("wall_jack", () -> new BlockItem(WALL_JACK.get(), new Item.Properties()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WallJackBlockEntity>> WALL_JACK_BLOCK_ENTITY =
+        BLOCK_ENTITIES.register("wall_jack",
+            () -> BlockEntityType.Builder.of(WallJackBlockEntity::new, WALL_JACK.get()).build(null));
+
     // ---- Creative tab ----
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main", () ->
@@ -118,6 +169,8 @@ public final class ModRegistry {
                 output.accept(CHIPSET_T1.get());
                 output.accept(CHIPSET_T2.get());
                 output.accept(CHIPSET_T3.get());
+                output.accept(WALL_JACK_ITEM.get());
+                for (DyeColor colour : DyeColor.values()) output.accept(NETWORK_CABLE_ITEMS.get(colour).get());
             })
             .build());
 

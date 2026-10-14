@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "ccsn:block/wall_jack"
+    },
+    "facing=south": {
+      "model": "ccsn:block/wall_jack",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "ccsn:block/wall_jack",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "ccsn:block/wall_jack",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "ccsn:block/wall_jack",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "ccsn:block/wall_jack",
+      "x": 90
+    }
+  }
+}

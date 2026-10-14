@@ -1,9 +1,10 @@
 # CC: Servers & Networking
 
 Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage with
-hot-swap drives, and (coming) network switches, server racks and blades.
+hot-swap drives, office network cabling and wall jacks, and (coming) network
+switches, server racks and blades.
 
-**Status: v0.2.1 (test build).** Requires CC:Tweaked 1.120.x.
+**Status: v0.3.0 (test build).** Requires CC:Tweaked 1.120.x.
 
 ## Getting it
 
@@ -27,6 +28,23 @@ Drop the jar in a NeoForge 1.21.1 instance alongside CC:Tweaked 1.120.x.
 - Breaking the NAS pops the drives out, like a chest.
 
 Files are stored on the server in `world/computercraft/ccsn_drives/<drive id>/`.
+
+## Network cable and wall jacks
+
+Still one normal CC wired network: computers and devices plug in with CC's grey
+cable and wired modems as usual, and see each other exactly as they would on
+plain CC cable. Our cable is the structured cabling in the walls between them.
+
+- **Network Cable** comes in 16 colours. A colour only joins the same colour;
+  different colours never join, so separate runs can sit side by side.
+- **Wall Jack**: put it on the cable (or on any wall). The back plugs into the
+  cable behind it, the front takes CC grey cable or a wired modem. Its label
+  strip shows the colour of the run it's on.
+- CC's grey cable and modems never connect to our cable directly; the wall
+  jack is the only way in.
+
+Example: printer + wired modem → grey cable → wall jack → red run → wall jack
+→ grey cable → computer + wired modem. Right-click both modems as normal.
 
 ## NAS Lua API (peripheral type `nas`)
 
