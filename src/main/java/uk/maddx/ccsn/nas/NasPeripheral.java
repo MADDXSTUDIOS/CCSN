@@ -22,7 +22,9 @@ import java.util.UUID;
  * Lua side of the NAS. Peripheral type: "nas".
  *
  * Every drive in the NAS is mounted on every attached computer as its own
- * folder: nas, nas2, nas3... Drives can be swapped while computers are running;
+ * folder named after the NAS and the bay it's in: nas_0_bay1, nas_0_bay2...
+ * (or nas_left_bay1 when the NAS touches the computer directly), so you can
+ * always tell which box and bay a drive is in. Drives can be swapped while computers are running;
  * attached computers get "nas_drive_insert" / "nas_drive_eject" events with
  * (peripheralName, bay).
  *
@@ -73,10 +75,16 @@ public final class NasPeripheral implements IPeripheral {
         return mounts[bay];
     }
 
-    /** CC won't pick a free name for us, so number them like disk drives do: nas, nas2, nas3... */
-    private static @Nullable String mountOn(IComputerAccess computer, WritableMount mount) {
+    /**
+     * Mount name for a bay, built from the name this computer knows the NAS by:
+     * wired "nas_0" gives nas_0_bay1, a NAS on the left side gives nas_left_bay1.
+     * CC won't pick a free name for us, so if something's already there add _2, _3...
+     */
+    private static @Nullable String mountOn(IComputerAccess computer, WritableMount mount, int bay) {
+        String peripheral = computer.getAttachmentName();
+        String base = (peripheral.startsWith(TYPE) ? peripheral : TYPE + "_" + peripheral) + "_bay" + (bay + 1);
         for (int i = 1; i <= MAX_MOUNTS; i++) {
-            String path = computer.mountWritable(i == 1 ? "nas" : "nas" + i, mount);
+            String path = computer.mountWritable(i == 1 ? base : base + "_" + i, mount);
             if (path != null) return path;
         }
         return null;
@@ -88,7 +96,7 @@ public final class NasPeripheral implements IPeripheral {
         computers.put(computer, paths);
         for (int bay = 0; bay < BAYS; bay++) {
             WritableMount mount = mountFor(bay);
-            if (mount != null) paths[bay] = mountOn(computer, mount);
+            if (mount != null) paths[bay] = mountOn(computer, mount, bay);
         }
     }
 
@@ -114,7 +122,7 @@ public final class NasPeripheral implements IPeripheral {
                 computer.unmount(paths[bay]);
                 paths[bay] = null;
             }
-            if (mount != null) paths[bay] = mountOn(computer, mount);
+            if (mount != null) paths[bay] = mountOn(computer, mount, bay);
             computer.queueEvent(mount != null ? "nas_drive_insert" : "nas_drive_eject",
                 computer.getAttachmentName(), bay + 1);
         }
@@ -179,7 +187,7 @@ public final class NasPeripheral implements IPeripheral {
         return result;
     }
 
-    /** Where a bay's drive is mounted on this computer, e.g. "nas2", or nil. */
+    /** Where a bay's drive is mounted on this computer, e.g. "nas_0_bay2", or nil. */
     @LuaFunction
     public final synchronized @Nullable String getMountPath(IComputerAccess computer, int bay) throws LuaException {
         String[] paths = computers.get(computer);

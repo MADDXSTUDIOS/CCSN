@@ -3,7 +3,7 @@
 Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage with
 hot-swap drives, and (coming) network switches, server racks and blades.
 
-**Status: v0.2.0 (test build).** Requires CC:Tweaked 1.120.x.
+**Status: v0.2.1 (test build).** Requires CC:Tweaked 1.120.x.
 
 ## Getting it
 
@@ -21,7 +21,9 @@ Drop the jar in a NeoForge 1.21.1 instance alongside CC:Tweaked 1.120.x.
 - **Chipsets**: Iron, Gold and Diamond chipsets are the crafting ingredient for
   every tiered item.
 - Every drive mounts on every attached computer (directly or over wired
-  modems) as `nas`, `nas2`, `nas3`...
+  modems), named after the NAS and bay it's in: `nas_0_bay1`, `nas_1_bay3`...
+  A NAS touching the computer uses its side: `nas_left_bay2`. The bay number
+  in the name always matches the bay, whatever order drives went in.
 - Breaking the NAS pops the drives out, like a chest.
 
 Files are stored on the server in `world/computercraft/ccsn_drives/<drive id>/`.
@@ -35,7 +37,7 @@ Bays are numbered 1-4, top to bottom.
 | `getBayCount()` | `4` |
 | `getDrive(bay)` | `{ bay, tier, capacity, free, mount, id, label }` or `nil` if empty |
 | `getDrives()` | Table of the above, keyed by bay number |
-| `getMountPath(bay)` | Where that drive is mounted on this computer, e.g. `"nas2"` |
+| `getMountPath(bay)` | Where that drive is mounted on this computer, e.g. `"nas_0_bay2"` |
 | `setDriveLabel(bay, text?)` | Label a drive (shows as the item name) |
 | `getLabel()` / `setLabel(text?)` | The NAS's own label |
 
