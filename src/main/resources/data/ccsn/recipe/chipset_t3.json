@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "RDR",
+    "QCQ",
+    "RDR"
+  ],
+  "key": {
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "D": {
+      "tag": "c:gems/diamond"
+    },
+    "Q": {
+      "tag": "c:gems/quartz"
+    },
+    "C": {
+      "item": "ccsn:chipset_t2"
+    }
+  },
+  "result": {
+    "id": "ccsn:chipset_t3",
+    "count": 1
+  }
+}

@@ -1,8 +1,520 @@
 {
-  "variants": {
-    "facing=north": { "model": "ccsn:block/nas" },
-    "facing=east":  { "model": "ccsn:block/nas", "y": 90 },
-    "facing=south": { "model": "ccsn:block/nas", "y": 180 },
-    "facing=west":  { "model": "ccsn:block/nas", "y": 270 }
-  }
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "ccsn:block/nas",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "ccsn:block/nas",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "ccsn:block/nas",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "ccsn:block/nas",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay1": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t1",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay1": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay1": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay1": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay1": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t2",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay1": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay1": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay1": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay1": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t3",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay1": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay1": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay1": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b1_t3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay2": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t1",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay2": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay2": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay2": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay2": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t2",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay2": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay2": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay2": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay2": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t3",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay2": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay2": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay2": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b2_t3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay3": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t1",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay3": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay3": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay3": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay3": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t2",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay3": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay3": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay3": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay3": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t3",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay3": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay3": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay3": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b3_t3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay4": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t1",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay4": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay4": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay4": "t1"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay4": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t2",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay4": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay4": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay4": "t2"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "bay4": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t3",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "bay4": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "bay4": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "bay4": "t3"
+      },
+      "apply": {
+        "model": "ccsn:block/nas_drive_b4_t3",
+        "y": 270
+      }
+    }
+  ]
 }

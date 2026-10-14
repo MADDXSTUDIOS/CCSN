@@ -13,7 +13,6 @@
               "function": "minecraft:copy_components",
               "source": "block_entity",
               "include": [
-                "ccsn:nas_id",
                 "ccsn:nas_label"
               ]
             }
@@ -21,7 +20,9 @@
         }
       ],
       "conditions": [
-        { "condition": "minecraft:survives_explosion" }
+        {
+          "condition": "minecraft:survives_explosion"
+        }
       ]
     }
   ]

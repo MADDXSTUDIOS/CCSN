@@ -1,0 +1,76 @@
+{
+  "textures": {
+    "particle": "ccsn:block/nas_caddy_edge",
+    "caddy": "ccsn:block/nas_caddy_t3",
+    "edge": "ccsn:block/nas_caddy_edge",
+    "latch": "ccsn:block/nas_latch"
+  },
+  "elements": [
+    {
+      "name": "caddy",
+      "from": [
+        1.5,
+        10.5,
+        -0.5
+      ],
+      "to": [
+        14.5,
+        12.5,
+        4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#caddy",
+          "uv": [
+            1,
+            1,
+            14,
+            3
+          ]
+        },
+        "up": {
+          "texture": "#edge"
+        },
+        "down": {
+          "texture": "#edge"
+        },
+        "east": {
+          "texture": "#edge"
+        },
+        "west": {
+          "texture": "#edge"
+        }
+      }
+    },
+    {
+      "name": "latch",
+      "from": [
+        12.4,
+        10.8,
+        -1.1
+      ],
+      "to": [
+        13.4,
+        12.2,
+        -0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#latch"
+        },
+        "east": {
+          "texture": "#latch"
+        },
+        "west": {
+          "texture": "#latch"
+        },
+        "up": {
+          "texture": "#latch"
+        },
+        "down": {
+          "texture": "#latch"
+        }
+      }
+    }
+  ]
+}

@@ -1,9 +1,21 @@
 {
   "itemGroup.ccsn": "CC: Servers & Networking",
   "block.ccsn.nas": "NAS (Network Attached Storage)",
+  "container.ccsn.nas": "NAS",
+  "item.ccsn.drive_t1": "Iron Drive",
+  "item.ccsn.drive_t2": "Gold Drive",
+  "item.ccsn.drive_t3": "Diamond Drive",
+  "item.ccsn.chipset_t1": "Iron Chipset",
+  "item.ccsn.chipset_t2": "Gold Chipset",
+  "item.ccsn.chipset_t3": "Diamond Chipset",
   "tooltip.ccsn.nas.label": "Label: %s",
-  "tooltip.ccsn.nas.id": "ID: %s...",
-  "tooltip.ccsn.nas.empty": "Unformatted",
-  "ccsn.configuration.nas": "NAS",
-  "ccsn.configuration.capacity": "NAS capacity (bytes)"
+  "tooltip.ccsn.nas.bays": "4 hot-swap drive bays",
+  "tooltip.ccsn.drive.capacity": "Capacity: %s",
+  "tooltip.ccsn.drive.id": "Drive ID: %s...",
+  "tooltip.ccsn.drive.blank": "Blank (formats when inserted)",
+  "gui.ccsn.nas.empty_bay": "Empty bay",
+  "ccsn.configuration.drives": "Drives",
+  "ccsn.configuration.t1_capacity": "Iron drive capacity (bytes)",
+  "ccsn.configuration.t2_capacity": "Gold drive capacity (bytes)",
+  "ccsn.configuration.t3_capacity": "Diamond drive capacity (bytes)"
 }

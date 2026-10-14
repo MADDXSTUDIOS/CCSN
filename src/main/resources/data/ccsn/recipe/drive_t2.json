@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "IPI",
+    "ICI",
+    "IRI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "C": {
+      "item": "ccsn:chipset_t2"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "result": {
+    "id": "ccsn:drive_t2",
+    "count": 1
+  }
+}

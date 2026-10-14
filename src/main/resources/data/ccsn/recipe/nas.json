@@ -3,14 +3,19 @@
   "category": "redstone",
   "pattern": [
     "III",
-    "DMD",
-    "IRI"
+    "ICI",
+    "IMI"
   ],
   "key": {
-    "I": { "item": "minecraft:iron_ingot" },
-    "D": { "item": "computercraft:disk_drive" },
-    "M": { "item": "computercraft:wired_modem" },
-    "R": { "item": "minecraft:redstone" }
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "C": {
+      "item": "ccsn:chipset_t1"
+    },
+    "M": {
+      "item": "computercraft:wired_modem"
+    }
   },
   "result": {
     "id": "ccsn:nas",

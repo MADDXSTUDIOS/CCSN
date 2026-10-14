@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "RNR",
+    "NIN",
+    "RNR"
+  ],
+  "key": {
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "N": {
+      "tag": "c:nuggets/iron"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "ccsn:chipset_t1",
+    "count": 2
+  }
+}

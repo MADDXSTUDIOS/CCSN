@@ -1,0 +1,9 @@
+{
+  "parent": "ccsn:item/drive_base",
+  "textures": {
+    "particle": "ccsn:item/drive_top_t2",
+    "top": "ccsn:item/drive_top_t2",
+    "rail": "ccsn:item/drive_rail_t2",
+    "face": "ccsn:item/drive_face_t2"
+  }
+}

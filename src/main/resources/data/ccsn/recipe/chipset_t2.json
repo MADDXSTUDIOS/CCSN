@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "RGR",
+    "GCG",
+    "RGR"
+  ],
+  "key": {
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "C": {
+      "item": "ccsn:chipset_t1"
+    }
+  },
+  "result": {
+    "id": "ccsn:chipset_t2",
+    "count": 1
+  }
+}
