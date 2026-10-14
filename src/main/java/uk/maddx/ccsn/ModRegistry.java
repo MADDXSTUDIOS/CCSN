@@ -55,7 +55,6 @@ public final class ModRegistry {
             .mapColor(MapColor.METAL)
             .strength(2.5f, 6.0f)
             .sound(SoundType.METAL)
-            .requiresCorrectToolForDrops()
     ));
 
     public static final DeferredItem<NasItem> NAS_ITEM =

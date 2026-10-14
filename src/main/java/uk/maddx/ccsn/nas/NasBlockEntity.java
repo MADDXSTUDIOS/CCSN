@@ -40,6 +40,11 @@ public final class NasBlockEntity extends BlockEntity {
         return nasId;
     }
 
+    /** True once this NAS has storage assigned (i.e. it may hold files). */
+    public boolean hasId() {
+        return nasId != null;
+    }
+
     public @Nullable String getLabel() {
         return label;
     }
