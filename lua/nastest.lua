@@ -1,36 +1,54 @@
 -- CC: Servers & Networking - NAS test
--- Put a NAS next to a computer (or on a wired modem network) and run: nastest
+-- Tests every NAS attached to this computer, directly or over wired modems.
+-- Usage: nastest
 
-local nas = peripheral.find("nas")
-if not nas then
+local nases = { peripheral.find("nas") }
+if #nases == 0 then
   printError("No NAS found. Place one next to this computer or connect it with a wired modem.")
   return
 end
 
 local function kb(n) return string.format("%.1f KB", n / 1024) end
 
-print("NAS found: " .. peripheral.getName(nas))
-print("ID:       " .. nas.getId())
-print("Label:    " .. tostring(nas.getLabel()))
-print("Mounted:  /" .. tostring(nas.getMountPath()))
-print("Capacity: " .. kb(nas.getCapacity()))
-print("Free:     " .. kb(nas.getFreeSpace()))
+print(("Found %d NAS"):format(#nases))
+local passed = 0
 
--- Write, read back, and check free space drops
-local path = fs.combine(nas.getMountPath(), "ccsn_test.txt")
-local before = nas.getFreeSpace()
-local f = fs.open(path, "w")
-f.write("Hello from CC: Servers & Networking! " .. os.date())
-f.close()
+for i, nas in ipairs(nases) do
+  local name = peripheral.getName(nas)
+  print("")
+  print(("[%d] %s"):format(i, name))
 
-local r = fs.open(path, "r")
-print("Read back: " .. r.readAll())
-r.close()
-print("Free after write: " .. kb(nas.getFreeSpace()) .. " (was " .. kb(before) .. ")")
+  local mount = nas.getMountPath()
+  if not mount then
+    printError("  NOT MOUNTED on this computer")
+  else
+    print("  Mounted:  /" .. mount)
+    print("  ID:       " .. nas.getId():sub(1, 8) .. "...")
+    print("  Label:    " .. tostring(nas.getLabel()))
+    print("  Free:     " .. kb(nas.getFreeSpace()) .. " of " .. kb(nas.getCapacity()))
 
-nas.setLabel("NAS 1")
-print("New label: " .. nas.getLabel())
+    local path = fs.combine(mount, "ccsn_test.txt")
+    local f = fs.open(path, "w")
+    f.write("Hello from " .. name .. " at " .. os.date())
+    f.close()
+
+    local r = fs.open(path, "r")
+    local text = r.readAll()
+    r.close()
+
+    if text:find(name, 1, true) then
+      print("  Write/read: OK")
+      if not nas.getLabel() then nas.setLabel("NAS " .. i) end
+      passed = passed + 1
+    else
+      printError("  Write/read: FAILED")
+    end
+  end
+end
 
 print("")
-print("All good. Now break the NAS, place it somewhere else,")
-print("and check " .. path .. " is still there.")
+if passed == #nases then
+  print(("All %d NAS passed."):format(passed))
+else
+  printError(("%d of %d NAS passed."):format(passed, #nases))
+end
