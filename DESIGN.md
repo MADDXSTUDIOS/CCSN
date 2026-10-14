@@ -97,9 +97,15 @@ Rules:
 
 ### Wall Jack
 - Faceplate on a wall, floor or ceiling, fitted to the block behind it.
-- Back: our cable directly behind (including, later, disguised cable in a wall).
-- Front: CC grey cable or a CC wired modem.
-- Coloured label strip shows which run it's on (grey = not on a run).
+- Back: our cable directly behind it, or **through one solid block** (cable run
+  behind a one-block wall). The cable shows a stub into the wall. Later,
+  disguised cable inside the wall itself also counts as "directly behind".
+- Front and 4 sides (never the back): CC grey cable or a CC wired modem. A grey
+  patch lead is drawn from the socket to each one so it visibly plugs in.
+- Jacks never connect to each other, so runs side by side stay apart.
+- Coloured label strip shows which run it's on (dark = not on a run).
+- Empty-hand right-click: status (run, through the wall or not, what's plugged
+  in, devices visible on the network).
 
 ### Network Switch
 - The hub: runs come in on several faces, so it has more ports than one cable
@@ -133,9 +139,9 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 |---|---|
 | v0.1 | NAS ✅ tested in-game (v0.1.3) |
 | v0.2 | NAS drive bays, 3D drives, chipsets, bay GUI, hot-swap ✅ tested in-game (v0.2.1) |
-| v0.3.0 | Coloured network cable + Wall Jack 🧪 |
+| v0.3.0 | Coloured network cable + Wall Jack 🧪 (v0.3.1: through-wall, side plugs, status) |
+| v0.3.x | Bundling (up to 4 runs per block) + disguise + wrench |
 | v0.3.x | Network Switch (hub, ports, chaining) |
-| v0.3.x | Bundling (4 runs per block) + disguise + wrench |
 | v0.3.x | Patch Panel, switch extras (VLANs, GUI, Lua) |
 | v0.4 | Server Rack and T1–T3 blades |
 | v0.5 | Router, Wireless Access Point, Print Server, cable trays and conduit |

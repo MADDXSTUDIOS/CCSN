@@ -1,27 +1,352 @@
 {
-  "variants": {
-    "facing=north": {
-      "model": "ccsn:block/wall_jack"
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack"
+      }
     },
-    "facing=south": {
-      "model": "ccsn:block/wall_jack",
-      "y": 180
+    {
+      "when": {
+        "facing": "north",
+        "north": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_front"
+      }
     },
-    "facing=east": {
-      "model": "ccsn:block/wall_jack",
-      "y": 90
+    {
+      "when": {
+        "facing": "north",
+        "west": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_west"
+      }
     },
-    "facing=west": {
-      "model": "ccsn:block/wall_jack",
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "east": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_east"
+      }
     },
-    "facing=up": {
-      "model": "ccsn:block/wall_jack",
-      "x": 270
+    {
+      "when": {
+        "facing": "north",
+        "up": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_up"
+      }
     },
-    "facing=down": {
-      "model": "ccsn:block/wall_jack",
-      "x": 90
+    {
+      "when": {
+        "facing": "north",
+        "down": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_down"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "south": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_front",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "east": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_west",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "west": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_east",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "up": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_up",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "down": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_down",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "east": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_front",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "north": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_west",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "south": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_east",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "up": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_up",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "down": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_down",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "west": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_front",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "south": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_west",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "north": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_east",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "up": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_up",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "down": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_down",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "up": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_front",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "west": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_west",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "east": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_east",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "south": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_up",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "north": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_down",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "down": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_front",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "west": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_west",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "east": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_east",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "north": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_up",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "south": "true"
+      },
+      "apply": {
+        "model": "ccsn:block/wall_jack_lead_down",
+        "x": 90
+      }
     }
-  }
+  ]
 }

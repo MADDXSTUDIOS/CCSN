@@ -35,5 +35,20 @@
   "item.ccsn.network_cable_brown": "Brown Network Cable",
   "item.ccsn.network_cable_green": "Green Network Cable",
   "item.ccsn.network_cable_red": "Red Network Cable",
-  "item.ccsn.network_cable_black": "Black Network Cable"
+  "item.ccsn.network_cable_black": "Black Network Cable",
+  "chat.ccsn.wall_jack.title": "Wall Jack",
+  "chat.ccsn.wall_jack.run": "Cable run: %s",
+  "chat.ccsn.wall_jack.run_through": "Cable run: %s (through the wall)",
+  "chat.ccsn.wall_jack.no_run": "Not on a cable run. Put network cable directly behind it, or behind the wall it is on.",
+  "chat.ccsn.wall_jack.plugged": "Plugged in: %s",
+  "chat.ccsn.wall_jack.unplugged": "Nothing plugged in. Run CC cable or a wired modem into the front or sides.",
+  "chat.ccsn.wall_jack.devices": "Devices on the network (%s): %s",
+  "chat.ccsn.wall_jack.no_devices": "No devices on the network yet (right-click the modems on your devices).",
+  "chat.ccsn.wall_jack.side.front": "front",
+  "chat.ccsn.wall_jack.side.north": "north side",
+  "chat.ccsn.wall_jack.side.south": "south side",
+  "chat.ccsn.wall_jack.side.east": "east side",
+  "chat.ccsn.wall_jack.side.west": "west side",
+  "chat.ccsn.wall_jack.side.up": "top",
+  "chat.ccsn.wall_jack.side.down": "bottom"
 }

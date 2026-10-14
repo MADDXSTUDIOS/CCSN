@@ -30,8 +30,9 @@ import java.util.Map;
 
 /**
  * One run of coloured network cable. A run only joins the same colour next to
- * it and the back of a wall jack fitted to it. CC's grey cable and modems can't
- * see it at all; the wall jack is the only way in.
+ * it, and wall jacks: one fitted straight onto it, or one on the far side of a
+ * one-block wall. CC's grey cable and modems can't see it at all; the wall jack
+ * is the only way in.
  */
 public final class NetworkCableBlock extends BaseEntityBlock {
     public static final MapCodec<NetworkCableBlock> CODEC = simpleCodec(NetworkCableBlock::new);
@@ -60,19 +61,63 @@ public final class NetworkCableBlock extends BaseEntityBlock {
 
     // ---- Connections ----
 
-    /** Does a cable in {@code self} reach over to {@code other}, which is on side {@code dir}? */
-    static boolean connects(BlockState self, BlockState other, Direction dir) {
+    /**
+     * Does the cable at {@code pos} reach out on side {@code dir}? It does for the same colour, a wall jack
+     * fitted straight onto it, or a wall jack on the far side of a one-block wall.
+     */
+    static boolean connects(BlockGetter level, BlockPos pos, BlockState self, Direction dir) {
+        BlockPos otherPos = pos.relative(dir);
+        BlockState other = level.getBlockState(otherPos);
         if (other.getBlock() instanceof NetworkCableBlock) return other.getValue(COLOR) == self.getValue(COLOR);
         // A wall jack fitted to this cable faces away from it.
         if (other.getBlock() instanceof WallJackBlock) return other.getValue(WallJackBlock.FACING) == dir;
-        return false;
+        return jackThroughWall(level, otherPos, other, dir);
+    }
+
+    /** Is there a wall jack on the far side of the wall at {@code wallPos}, facing on in direction {@code dir}? */
+    static boolean jackThroughWall(BlockGetter level, BlockPos wallPos, BlockState wall, Direction dir) {
+        if (!isWall(level, wallPos, wall)) return false;
+        BlockState jack = level.getBlockState(wallPos.relative(dir));
+        return jack.getBlock() instanceof WallJackBlock && jack.getValue(WallJackBlock.FACING) == dir;
+    }
+
+    /** A full solid block a jack can reach through: bricks, planks, logs, concrete... */
+    static boolean isWall(BlockGetter level, BlockPos pos, BlockState state) {
+        return !(state.getBlock() instanceof NetworkCableBlock)
+            && !(state.getBlock() instanceof WallJackBlock)
+            && state.isCollisionShapeFullBlock(level, pos);
     }
 
     public static BlockState withConnections(BlockState state, BlockGetter level, BlockPos pos) {
         for (Direction dir : Direction.values()) {
-            state = state.setValue(CONNECT.get(dir), connects(state, level.getBlockState(pos.relative(dir)), dir));
+            state = state.setValue(CONNECT.get(dir), connects(level, pos, state, dir));
         }
         return state;
+    }
+
+    /** Wall jacks on the far side of a wall don't get a shape update when we change, so tell them. */
+    static void updateJacksThroughWalls(Level level, BlockPos pos) {
+        for (Direction dir : Direction.values()) {
+            BlockPos wallPos = pos.relative(dir);
+            if (!jackThroughWall(level, wallPos, level.getBlockState(wallPos), dir)) continue;
+            BlockPos jackPos = wallPos.relative(dir);
+            BlockState jack = level.getBlockState(jackPos);
+            BlockState updated = jack.setValue(WallJackBlock.LINK, WallJackBlock.linkFor(level, jackPos, dir));
+            if (updated != jack) level.setBlock(jackPos, updated, Block.UPDATE_ALL);
+            if (level.getBlockEntity(jackPos) instanceof WallJackBlockEntity be) be.scheduleRefresh();
+        }
+    }
+
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving) {
+        super.onPlace(state, level, pos, oldState, moving);
+        if (!level.isClientSide && !oldState.is(this)) updateJacksThroughWalls(level, pos);
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
+        super.onRemove(state, level, pos, newState, moving);
+        if (!level.isClientSide && !newState.is(this)) updateJacksThroughWalls(level, pos);
     }
 
     @Override
@@ -83,7 +128,7 @@ public final class NetworkCableBlock extends BaseEntityBlock {
     @Override
     protected BlockState updateShape(BlockState state, Direction dir, BlockState neighbour, LevelAccessor level,
                                      BlockPos pos, BlockPos neighbourPos) {
-        return state.setValue(CONNECT.get(dir), connects(state, neighbour, dir));
+        return state.setValue(CONNECT.get(dir), connects(level, pos, state, dir));
     }
 
     @Override

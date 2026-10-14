@@ -57,18 +57,23 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         Level level = getLevel();
         if (level == null || level.isClientSide) return;
 
-        BlockState self = getBlockState();
         for (Direction dir : Direction.values()) {
             BlockPos other = worldPosition.relative(dir);
             if (!level.isLoaded(other)) continue;
 
             WiredNode target = null;
             BlockEntity be = level.getBlockEntity(other);
-            if (be instanceof NetworkCableBlockEntity cable && cable.colour() == colour()) {
-                target = cable.node();
-            } else if (be instanceof WallJackBlockEntity jack
-                && NetworkCableBlock.connects(self, jack.getBlockState(), dir)) {
-                target = jack.node();
+            if (be instanceof NetworkCableBlockEntity cable) {
+                if (cable.colour() == colour()) target = cable.node();
+            } else if (be instanceof WallJackBlockEntity jack) {
+                if (jack.getBlockState().getValue(WallJackBlock.FACING) == dir) target = jack.node();
+            } else {
+                BlockPos jackPos = other.relative(dir);
+                if (level.isLoaded(jackPos)
+                    && NetworkCableBlock.jackThroughWall(level, other, level.getBlockState(other), dir)
+                    && level.getBlockEntity(jackPos) instanceof WallJackBlockEntity farJack) {
+                    target = farJack.node();
+                }
             }
             link(dir, target);
         }

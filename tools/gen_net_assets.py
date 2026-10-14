@@ -59,6 +59,19 @@ for x in range(16):
     for y in range(16): px(label, x, y, noise(grey(236), 2))
 label.save(f'{BT}/wall_jack_label.png')
 
+# Patch lead drawn from the jack socket to CC cable: grey like CC's own cable.
+lead = img()
+for x in range(16):
+    for y in range(16):
+        v = 150 if (x + y) % 5 == 0 else 172
+        px(lead, x, y, noise(grey(v), 3))
+lead.save(f'{BT}/patch_lead.png')
+boot = img()
+for x in range(16):
+    for y in range(16): px(boot, x, y, noise((118, 124, 132), 3))
+for x in range(16): px(boot, x, 0, (150, 156, 164))
+boot.save(f'{BT}/patch_lead_boot.png')
+
 # Cable item: a loose coil with a plug on the end, greyscale for tinting.
 coil = img()
 cx, cy = 7.5, 7.0
@@ -124,8 +137,39 @@ JACK_TEX = {'front': 'ccsn:block/wall_jack', 'side': 'ccsn:block/wall_jack_side'
 jdump({'textures': JACK_TEX, 'elements': jack_elements(14)}, f'{BM}/wall_jack.json')
 jdump({'parent': 'minecraft:block/block', 'textures': JACK_TEX, 'elements': jack_elements(7)},
       f'{IM}/wall_jack.json')
-jdump({'variants': {f'facing={d}': {'model': 'ccsn:block/wall_jack', **r} for d, r in ROT.items()}},
-      f'{BS}/wall_jack.json')
+# Patch leads, modelled for a north-facing jack (plate on the south side, socket at z=14).
+# Each lead model = plug boot in the socket + lead out to the block centre + arm to one side.
+# CC's cable is 4 px (6..10), so the arms line up with it.
+LEAD_ARM = {'front': ([6, 6, 0], [10, 10, 6]), 'west': ([0, 6, 6], [6, 10, 10]),
+            'east': ([10, 6, 6], [16, 10, 10]), 'up': ([6, 10, 6], [10, 16, 10]),
+            'down': ([6, 0, 6], [10, 6, 10])}
+LEAD_TEX = {'lead': 'ccsn:block/patch_lead', 'boot': 'ccsn:block/patch_lead_boot',
+            'particle': 'ccsn:block/patch_lead'}
+ALL = ['north', 'south', 'east', 'west', 'up', 'down']
+for rel, (f, t) in LEAD_ARM.items():
+    jdump({'textures': LEAD_TEX, 'elements': [
+        {'from': [5.5, 5.5, 12], 'to': [10.5, 10.5, 14], 'faces': {n: {'texture': '#boot'} for n in ALL}},
+        {'from': [6, 6, 6], 'to': [10, 10, 12], 'faces': {n: {'texture': '#lead'} for n in ALL}},
+        {'from': f, 'to': t, 'faces': {n: {'texture': '#lead'} for n in ALL}},
+    ]}, f'{BM}/wall_jack_lead_{rel}.json')
+
+# Rotations as Minecraft applies them (x first, then y). North-frame side -> world side.
+def rotate(d, r):
+    for _ in range(r.get('x', 0) // 90):
+        d = {'north': 'down', 'down': 'south', 'south': 'up', 'up': 'north'}.get(d, d)
+    for _ in range(r.get('y', 0) // 90):
+        d = {'north': 'east', 'east': 'south', 'south': 'west', 'west': 'north'}.get(d, d)
+    return d
+REL_DIR = {'front': 'north', 'west': 'west', 'east': 'east', 'up': 'up', 'down': 'down'}
+parts = []
+for facing, r in ROT.items():
+    assert rotate('north', r) == facing
+    parts.append({'when': {'facing': facing}, 'apply': {'model': 'ccsn:block/wall_jack', **r}})
+    for rel, d in REL_DIR.items():
+        world = rotate(d, r)
+        parts.append({'when': {'facing': facing, world: 'true'},
+                      'apply': {'model': f'ccsn:block/wall_jack_lead_{rel}', **r}})
+jdump({'multipart': parts}, f'{BS}/wall_jack.json')
 
 # ================= loot =================
 jdump({'type': 'minecraft:block', 'pools': [{
@@ -145,6 +189,20 @@ lang_path = f'{ROOT}/lang/en_us.json'
 lang = json.load(open(lang_path))
 lang['block.ccsn.network_cable'] = 'Network Cable'
 lang['block.ccsn.wall_jack'] = 'Wall Jack'
+lang.update({
+    'chat.ccsn.wall_jack.title': 'Wall Jack',
+    'chat.ccsn.wall_jack.run': 'Cable run: %s',
+    'chat.ccsn.wall_jack.run_through': 'Cable run: %s (through the wall)',
+    'chat.ccsn.wall_jack.no_run': 'Not on a cable run. Put network cable directly behind it, or behind the wall it is on.',
+    'chat.ccsn.wall_jack.plugged': 'Plugged in: %s',
+    'chat.ccsn.wall_jack.unplugged': 'Nothing plugged in. Run CC cable or a wired modem into the front or sides.',
+    'chat.ccsn.wall_jack.devices': 'Devices on the network (%s): %s',
+    'chat.ccsn.wall_jack.no_devices': 'No devices on the network yet (right-click the modems on your devices).',
+    'chat.ccsn.wall_jack.side.front': 'front',
+    'chat.ccsn.wall_jack.side.north': 'north side', 'chat.ccsn.wall_jack.side.south': 'south side',
+    'chat.ccsn.wall_jack.side.east': 'east side', 'chat.ccsn.wall_jack.side.west': 'west side',
+    'chat.ccsn.wall_jack.side.up': 'top', 'chat.ccsn.wall_jack.side.down': 'bottom',
+})
 for c in COLOURS:
     lang[f'item.ccsn.network_cable_{c}'] = ' '.join(w.capitalize() for w in c.split('_')) + ' Network Cable'
 jdump(lang, lang_path)

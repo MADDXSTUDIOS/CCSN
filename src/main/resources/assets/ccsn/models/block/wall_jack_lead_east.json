@@ -1,0 +1,105 @@
+{
+  "textures": {
+    "lead": "ccsn:block/patch_lead",
+    "boot": "ccsn:block/patch_lead_boot",
+    "particle": "ccsn:block/patch_lead"
+  },
+  "elements": [
+    {
+      "from": [
+        5.5,
+        5.5,
+        12
+      ],
+      "to": [
+        10.5,
+        10.5,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#boot"
+        },
+        "south": {
+          "texture": "#boot"
+        },
+        "east": {
+          "texture": "#boot"
+        },
+        "west": {
+          "texture": "#boot"
+        },
+        "up": {
+          "texture": "#boot"
+        },
+        "down": {
+          "texture": "#boot"
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        6,
+        6
+      ],
+      "to": [
+        10,
+        10,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lead"
+        },
+        "south": {
+          "texture": "#lead"
+        },
+        "east": {
+          "texture": "#lead"
+        },
+        "west": {
+          "texture": "#lead"
+        },
+        "up": {
+          "texture": "#lead"
+        },
+        "down": {
+          "texture": "#lead"
+        }
+      }
+    },
+    {
+      "from": [
+        10,
+        6,
+        6
+      ],
+      "to": [
+        16,
+        10,
+        10
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lead"
+        },
+        "south": {
+          "texture": "#lead"
+        },
+        "east": {
+          "texture": "#lead"
+        },
+        "west": {
+          "texture": "#lead"
+        },
+        "up": {
+          "texture": "#lead"
+        },
+        "down": {
+          "texture": "#lead"
+        }
+      }
+    }
+  ]
+}
