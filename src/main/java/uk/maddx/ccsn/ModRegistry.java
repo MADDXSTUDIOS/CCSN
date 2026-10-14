@@ -123,6 +123,7 @@ public final class ModRegistry {
             .strength(0.8f)
             .sound(SoundType.WOOL)
             .noOcclusion()
+            .dynamicShape() // shape comes from the block entity (which runs, which way)
             .pushReaction(PushReaction.DESTROY)
     ));
 

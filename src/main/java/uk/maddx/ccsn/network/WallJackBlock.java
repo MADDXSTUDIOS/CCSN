@@ -8,6 +8,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -39,7 +40,9 @@ import java.util.Map;
 /**
  * A data faceplate for walls, floors and ceilings.
  * <ul>
- *   <li>Back: the network cable directly behind it, or behind a one-block wall.</li>
+ *   <li>Back: the network cable directly behind it, or behind a one-block wall. If the cable
+ *   carries several runs, the jack uses one: the first, or the one picked by right-clicking
+ *   the jack with a cable of that colour.</li>
  *   <li>Front and four sides: CC grey cable or a CC wired modem. A grey patch lead
  *   is drawn from the socket to each one.</li>
  * </ul>
@@ -96,9 +99,33 @@ public final class WallJackBlock extends BaseEntityBlock {
         return null;
     }
 
+    /**
+     * Which run the jack uses: the one picked with a cable if it's still there behind the jack,
+     * otherwise the first run behind it.
+     */
     static JackLink linkFor(BlockGetter level, BlockPos pos, Direction facing) {
         BlockPos run = runPos(level, pos, facing);
-        return run == null ? JackLink.NONE : JackLink.of(level.getBlockState(run).getValue(NetworkCableBlock.COLOR));
+        if (run == null || !(level.getBlockEntity(run) instanceof NetworkCableBlockEntity cable)) return JackLink.NONE;
+        DyeColor wanted = level.getBlockEntity(pos) instanceof WallJackBlockEntity jack ? jack.wanted() : null;
+        if (wanted != null && cable.has(wanted)) return JackLink.of(wanted);
+        return JackLink.of(cable.firstColour());
+    }
+
+    /** Work out the jack's run again, and get the jack and the cable behind it to relink. Server only. */
+    static void refreshLink(Level level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof WallJackBlock)) return;
+        Direction facing = state.getValue(FACING);
+        JackLink link = linkFor(level, pos, facing);
+        if (link != state.getValue(LINK)) level.setBlock(pos, state.setValue(LINK, link), Block.UPDATE_ALL);
+        if (level.getBlockEntity(pos) instanceof WallJackBlockEntity jack) jack.scheduleRefresh();
+        scheduleRunRefresh(level, pos, facing);
+    }
+
+    /** The cable feeding us redraws its arm towards us (it may be behind a wall and miss the update). */
+    private static void scheduleRunRefresh(Level level, BlockPos pos, Direction facing) {
+        BlockPos run = runPos(level, pos, facing);
+        if (run != null && level.getBlockEntity(run) instanceof NetworkCableBlockEntity cable) cable.scheduleRefresh();
     }
 
     // ---- CC side ----
@@ -150,7 +177,12 @@ public final class WallJackBlock extends BaseEntityBlock {
         Direction facing = state.getValue(FACING);
         if (dir == facing.getOpposite()) {
             if (!canSurvive(state, level, pos)) return Blocks.AIR.defaultBlockState();
-            return state.setValue(LINK, linkFor(level, pos, facing));
+            JackLink link = linkFor(level, pos, facing);
+            if (link != state.getValue(LINK) && level instanceof Level real && !real.isClientSide) {
+                if (real.getBlockEntity(pos) instanceof WallJackBlockEntity jack) jack.scheduleRefresh();
+                scheduleRunRefresh(real, pos, facing);
+            }
+            return state.setValue(LINK, link);
         }
         if (level instanceof Level real) {
             state = state.setValue(PLUGGED.get(dir), pluggedOn(real, pos, facing, dir));
@@ -179,22 +211,27 @@ public final class WallJackBlock extends BaseEntityBlock {
         if (!level.isClientSide && !newState.is(this)) updateCableThroughWall(level, pos, state.getValue(FACING));
     }
 
-    /** A cable behind a wall doesn't get a shape update when we come or go, so redraw its stub into the wall. */
+    /** A cable behind a wall doesn't get a neighbour update when we come or go, so tell it. */
     private static void updateCableThroughWall(Level level, BlockPos pos, Direction facing) {
         BlockPos far = pos.relative(facing.getOpposite(), 2);
-        BlockState cable = level.getBlockState(far);
-        if (!(cable.getBlock() instanceof NetworkCableBlock)) return;
-        BlockState updated = NetworkCableBlock.withConnections(cable, level, far);
-        if (updated != cable) level.setBlock(far, updated, Block.UPDATE_ALL);
-        if (level.getBlockEntity(far) instanceof NetworkCableBlockEntity be) be.scheduleRefresh();
+        if (level.getBlockEntity(far) instanceof NetworkCableBlockEntity cable) cable.scheduleRefresh();
     }
 
     // ---- Status check ----
 
-    /** Holding something: let it be placed (CC cable into the front, say). Empty hand: status check. */
+    /**
+     * Holding network cable: switch the jack to that colour's run. Holding anything else: let it be
+     * placed (CC cable into the front, say). Empty hand: status check.
+     */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
+        if (stack.getItem() instanceof NetworkCableItem cable) {
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof WallJackBlockEntity jack) {
+                jack.chooseRun(cable.colour(), player);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
         return stack.isEmpty()
             ? ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
             : ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;

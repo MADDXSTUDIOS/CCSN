@@ -8,6 +8,8 @@ import dan200.computercraft.api.network.wired.WiredNode;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
@@ -37,6 +39,8 @@ public final class WallJackBlockEntity extends BlockEntity implements NetworkSch
     private final WiredNode[] plugs = new WiredNode[6];
     /** Peripheral names on the network, for the status check. */
     private final Set<String> devices = new TreeSet<>();
+    /** The run picked by right-clicking with a cable. Null = first run behind the jack. */
+    private @Nullable DyeColor wanted;
 
     public WallJackBlockEntity(BlockPos pos, BlockState state) {
         super(ModRegistry.WALL_JACK_BLOCK_ENTITY.get(), pos, state);
@@ -48,6 +52,33 @@ public final class WallJackBlockEntity extends BlockEntity implements NetworkSch
 
     private Direction facing() {
         return getBlockState().getValue(WallJackBlock.FACING);
+    }
+
+    @Nullable DyeColor wanted() {
+        return wanted;
+    }
+
+    /** Is this jack fitted on side {@code dir} of a cable and using its {@code colour} run? */
+    boolean feeds(Direction dir, DyeColor colour) {
+        BlockState state = getBlockState();
+        return state.getValue(WallJackBlock.FACING) == dir && state.getValue(WallJackBlock.LINK).colour() == colour;
+    }
+
+    /** Right-clicked with a cable: switch to that colour's run, if it's behind the jack. */
+    void chooseRun(DyeColor colour, Player player) {
+        Level level = getLevel();
+        if (level == null) return;
+        BlockPos runPos = WallJackBlock.runPos(level, worldPosition, facing());
+        Component name = Component.translatable("color.minecraft." + colour.getName());
+        if (runPos == null || !(level.getBlockEntity(runPos) instanceof NetworkCableBlockEntity cable)
+            || !cable.has(colour)) {
+            player.displayClientMessage(Component.translatable("chat.ccsn.wall_jack.no_such_run", name), true);
+            return;
+        }
+        wanted = colour;
+        setChanged();
+        WallJackBlock.refreshLink(level, worldPosition);
+        player.displayClientMessage(Component.translatable("chat.ccsn.wall_jack.switched", name), true);
     }
 
     /** What CC sees: every face but the back, and never another jack (so runs side by side stay apart). */
@@ -82,12 +113,13 @@ public final class WallJackBlockEntity extends BlockEntity implements NetworkSch
         if (level == null || level.isClientSide) return;
         Direction facing = facing();
 
-        // Back: the cable run, directly behind or through a wall.
+        // Back: our run in the cable, directly behind or through a wall.
         WiredNode newRun = null;
+        DyeColor colour = getBlockState().getValue(WallJackBlock.LINK).colour();
         BlockPos runPos = WallJackBlock.runPos(level, worldPosition, facing);
-        if (runPos != null && level.isLoaded(runPos)
+        if (colour != null && runPos != null && level.isLoaded(runPos)
             && level.getBlockEntity(runPos) instanceof NetworkCableBlockEntity cable) {
-            newRun = cable.node();
+            newRun = cable.node(colour);
         }
         run = relink(run, newRun);
 
@@ -101,6 +133,18 @@ public final class WallJackBlockEntity extends BlockEntity implements NetworkSch
             }
             plugs[dir.ordinal()] = relink(plugs[dir.ordinal()], target);
         }
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        if (wanted != null) tag.putString("Run", wanted.getSerializedName());
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        wanted = tag.contains("Run") ? DyeColor.byName(tag.getString("Run"), null) : null;
     }
 
     private @Nullable WiredNode relink(@Nullable WiredNode previous, @Nullable WiredNode target) {
@@ -130,6 +174,17 @@ public final class WallJackBlockEntity extends BlockEntity implements NetworkSch
             Component name = Component.translatable("color.minecraft." + colour.getName());
             player.displayClientMessage(Component.translatable(
                 throughWall ? "chat.ccsn.wall_jack.run_through" : "chat.ccsn.wall_jack.run", name), false);
+
+            if (runPos != null && level.getBlockEntity(runPos) instanceof NetworkCableBlockEntity cable) {
+                List<Component> others = new ArrayList<>();
+                for (DyeColor other : cable.colours()) {
+                    if (other != colour) others.add(Component.translatable("color.minecraft." + other.getName()));
+                }
+                if (!others.isEmpty()) {
+                    player.displayClientMessage(Component.translatable("chat.ccsn.wall_jack.other_runs", join(others))
+                        .withStyle(ChatFormatting.GRAY), false);
+                }
+            }
         }
 
         // What's plugged in

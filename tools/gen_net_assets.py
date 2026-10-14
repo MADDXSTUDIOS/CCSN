@@ -98,22 +98,15 @@ def faces(names, tex='#cable', tint=True):
         out[n] = f
     return out
 
-jdump({'textures': {'cable': 'ccsn:block/network_cable', 'particle': 'ccsn:block/network_cable'},
-       'elements': [{'from': [A, A, A], 'to': [B, B, B],
-                     'faces': faces(['north', 'south', 'east', 'west', 'up', 'down'])}]},
-      f'{BM}/network_cable_core.json')
-jdump({'textures': {'cable': 'ccsn:block/network_cable', 'particle': 'ccsn:block/network_cable'},
-       'elements': [{'from': [A, A, 0], 'to': [B, B, A],
-                     'faces': faces(['north', 'east', 'west', 'up', 'down'])}]},
-      f'{BM}/network_cable_arm.json')
+# The cable is drawn in code from its block entity (CableBakedModel); this model only names the
+# texture (used for the strands and break particles).
+jdump({'textures': {'particle': 'ccsn:block/network_cable'}}, f'{BM}/network_cable.json')
+jdump({'variants': {'': {'model': 'ccsn:block/network_cable'}}}, f'{BS}/network_cable.json')
+for old in ('network_cable_core', 'network_cable_arm'):
+    if os.path.exists(f'{BM}/{old}.json'): os.remove(f'{BM}/{old}.json')
 
 ROT = {'north': {}, 'south': {'y': 180}, 'east': {'y': 90}, 'west': {'y': 270},
        'up': {'x': 270}, 'down': {'x': 90}}
-multipart = [{'apply': {'model': 'ccsn:block/network_cable_core'}}]
-for d, r in ROT.items():
-    multipart.append({'when': {d: 'true'}, 'apply': {'model': 'ccsn:block/network_cable_arm', **r}})
-jdump({'multipart': multipart}, f'{BS}/network_cable.json')
-
 for c in COLOURS:
     jdump({'parent': 'minecraft:item/generated', 'textures': {'layer0': 'ccsn:item/network_cable'}},
           f'{IM}/network_cable_{c}.json')
@@ -172,13 +165,8 @@ for facing, r in ROT.items():
 jdump({'multipart': parts}, f'{BS}/wall_jack.json')
 
 # ================= loot =================
-jdump({'type': 'minecraft:block', 'pools': [{
-    'rolls': 1,
-    'conditions': [{'condition': 'minecraft:survives_explosion'}],
-    'entries': [{'type': 'minecraft:item', 'name': f'ccsn:network_cable_{c}', 'conditions': [{
-        'condition': 'minecraft:block_state_property', 'block': 'ccsn:network_cable',
-        'properties': {'color': c}}]} for c in COLOURS]}]},
-    f'{LOOT}/network_cable.json')
+# Cable drops are worked out in code (one cable item per run), so no loot table.
+if os.path.exists(f'{LOOT}/network_cable.json'): os.remove(f'{LOOT}/network_cable.json')
 jdump({'type': 'minecraft:block', 'pools': [{
     'rolls': 1, 'conditions': [{'condition': 'minecraft:survives_explosion'}],
     'entries': [{'type': 'minecraft:item', 'name': 'ccsn:wall_jack'}]}]},
@@ -202,6 +190,10 @@ lang.update({
     'chat.ccsn.wall_jack.side.north': 'north side', 'chat.ccsn.wall_jack.side.south': 'south side',
     'chat.ccsn.wall_jack.side.east': 'east side', 'chat.ccsn.wall_jack.side.west': 'west side',
     'chat.ccsn.wall_jack.side.up': 'top', 'chat.ccsn.wall_jack.side.down': 'bottom',
+    'chat.ccsn.wall_jack.other_runs': 'Other runs here: %s (right-click the jack with a cable to switch)',
+    'chat.ccsn.wall_jack.switched': 'Jack switched to the %s run',
+    'chat.ccsn.wall_jack.no_such_run': 'There is no %s run behind this jack',
+    'chat.ccsn.cable.full': 'This cable already carries %s runs',
 })
 for c in COLOURS:
     lang[f'item.ccsn.network_cable_{c}'] = ' '.join(w.capitalize() for w in c.split('_')) + ' Network Cable'

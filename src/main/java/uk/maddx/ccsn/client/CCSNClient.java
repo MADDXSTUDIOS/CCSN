@@ -1,14 +1,17 @@
 package uk.maddx.ccsn.client;
 
+import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import uk.maddx.ccsn.CCSN;
 import uk.maddx.ccsn.ModRegistry;
-import uk.maddx.ccsn.network.NetworkCableBlock;
 import uk.maddx.ccsn.network.NetworkCableItem;
 import uk.maddx.ccsn.network.WallJackBlock;
 
@@ -41,14 +44,24 @@ public final class CCSNClient {
 
     @SubscribeEvent
     public static void registerBlockColours(RegisterColorHandlersEvent.Block event) {
+        // Cable quads carry their colour as tint index (ordinal + 1); see CableBakedModel.
         event.register((state, level, pos, tintIndex) ->
-            tintIndex == 0 ? tint(state.getValue(NetworkCableBlock.COLOR)) : -1, ModRegistry.NETWORK_CABLE.get());
+            tintIndex >= 1 && tintIndex <= 16 ? tint(DyeColor.byId(tintIndex - 1)) : -1, ModRegistry.NETWORK_CABLE.get());
 
         event.register((state, level, pos, tintIndex) -> {
             if (tintIndex != 0) return -1;
             DyeColor colour = state.getValue(WallJackBlock.LINK).colour();
             return colour == null ? UNLINKED : tint(colour);
         }, ModRegistry.WALL_JACK.get());
+    }
+
+    /** Network cable is drawn from its block entity's data, not a fixed model. */
+    @SubscribeEvent
+    public static void modifyBakingResult(ModelEvent.ModifyBakingResult event) {
+        ModelResourceLocation location = BlockModelShaper.stateToModelLocation(
+            ModRegistry.NETWORK_CABLE.get().defaultBlockState());
+        BakedModel original = event.getModels().get(location);
+        if (original != null) event.getModels().put(location, new CableBakedModel(original));
     }
 
     @SubscribeEvent

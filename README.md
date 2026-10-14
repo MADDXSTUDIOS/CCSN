@@ -4,7 +4,7 @@ Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage with
 hot-swap drives, office network cabling and wall jacks, and (coming) network
 switches, server racks and blades.
 
-**Status: v0.3.1 (test build).** Requires CC:Tweaked 1.120.x.
+**Status: v0.3.2 (test build).** Requires CC:Tweaked 1.120.x.
 
 ## Getting it
 
@@ -36,12 +36,18 @@ cable and wired modems as usual, and see each other exactly as they would on
 plain CC cable. Our cable is the structured cabling in the walls between them.
 
 - **Network Cable** comes in 16 colours. A colour only joins the same colour;
-  different colours never join, so separate runs can sit side by side.
+  different colours never join.
+- **Up to 4 runs share one block:** right-click a cable with a colour it doesn't
+  carry yet to add that run. Every colour has its own fixed lane, so runs line
+  up block to block whatever they share a block with. Breaking the block drops
+  one cable per run.
 - **Wall Jack**: goes on a wall, floor or ceiling. The back plugs into network
   cable directly behind it, **or through the wall**: run the cable behind a
   one-block wall and put the jack on the room side. CC grey cable or a wired
   modem plugs into its front or any of its 4 sides, shown by a grey patch lead.
   Its label strip shows the colour of the run it's on (dark = not on a run).
+  On a bundle it uses the first run; right-click the jack with a cable of
+  another colour in the bundle to switch it to that run.
   Jacks next to each other never connect to each other.
 - **Status check:** right-click a jack with an empty hand to see its run, what's
   plugged in, and which devices it can see on the network.

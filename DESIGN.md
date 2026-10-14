@@ -87,9 +87,15 @@ Rules:
   without a CC modem: CC's public API lets a wired node share peripherals.
 
 ### Network Cable (block)
-- Thin (3 px) strand, 16 dye colours, one item per colour.
-- Same colour joins same colour; different colours never join.
-- **Later (bundling):** up to 4 colours in ONE block space.
+- 16 dye colours, one item per colour. Same colour joins same colour;
+  different colours never join.
+- **Bundling (v0.3.2):** up to 4 runs in ONE block space. Right-click a cable
+  with a new colour to add it. Each colour has a fixed lane (2 px strand at a
+  point from a 4x4 Latin square, so no two colours overlap along any axis and
+  runs line up block to block). Data lives in the block entity; a dynamic
+  model draws it. Breaking drops one item per run.
+- A jack on a bundle uses one run: the first, or the one picked by
+  right-clicking the jack with that colour's cable.
 - **Later (disguise):** right-click with a full plain block (stone bricks,
   planks, concrete...) and the cable looks and behaves like that block. Wrench
   + sneak-right-click removes it; holding the wrench shows hidden runs.
@@ -140,7 +146,8 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 | v0.1 | NAS ✅ tested in-game (v0.1.3) |
 | v0.2 | NAS drive bays, 3D drives, chipsets, bay GUI, hot-swap ✅ tested in-game (v0.2.1) |
 | v0.3.0 | Coloured network cable + Wall Jack 🧪 (v0.3.1: through-wall, side plugs, status) |
-| v0.3.x | Bundling (up to 4 runs per block) + disguise + wrench |
+| v0.3.2 | Bundling (up to 4 runs per block) 🧪 |
+| v0.3.x | Disguise + wrench |
 | v0.3.x | Network Switch (hub, ports, chaining) |
 | v0.3.x | Patch Panel, switch extras (VLANs, GUI, Lua) |
 | v0.4 | Server Rack and T1–T3 blades |
