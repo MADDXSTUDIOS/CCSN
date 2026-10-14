@@ -21,10 +21,13 @@ branding is done with a resource pack in the user's own modpack.
 
 ## Blocks and items
 
-### NAS (Network Attached Storage) ✅ v0.1
+### NAS (Network Attached Storage) ✅ v0.1 (tested)
 - Mounts writable storage on attached computers, directly or over a network.
 - Several computers can share one NAS.
 - Data and label survive breaking and re-placing.
+- Multiple NAS on one computer mount as `nas`, `nas2`, `nas3`...
+- Always drops when broken (by hand too); in creative it drops like a shulker
+  box once it has storage assigned.
 - **v0.2:** becomes a chassis with **4 drive bays** (GUI).
   - Drives are items that hold their own data and move between NASes.
   - Tiers: **T1 4 MiB, T2 16 MiB, T3 64 MiB** (configurable).
@@ -109,7 +112,7 @@ computers straight into the switch.
 
 | Version | Contents |
 |---|---|
-| v0.1 | NAS ✅ (awaiting in-game test) |
+| v0.1 | NAS ✅ tested in-game (v0.1.3) |
 | v0.2 | NAS drive bays and T1–T3 drives |
 | v0.3 | Network Switch, coloured cables (bundling and disguise), patch cables, Wall Jack, Patch Panel |
 | v0.4 | Server Rack and T1–T3 blades |
