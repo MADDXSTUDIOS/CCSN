@@ -4,7 +4,7 @@ Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage with
 hot-swap drives, office network cabling and wall jacks, and (coming) network
 switches, server racks and blades.
 
-**Status: v0.3.5 (test build).** Requires CC:Tweaked 1.120.x.
+**Status: v0.3.6 (test build).** Requires CC:Tweaked 1.120.x.
 
 ## Getting it
 
@@ -37,14 +37,19 @@ plain CC cable. Our cable is the structured cabling in the walls between them.
 
 - **Network Cable** comes in 16 colours. A colour only joins the same colour;
   different colours never join.
-- **Up to 4 runs share one block:** right-click a cable (or the block it sits
-  on) with a colour it doesn't carry yet to add that run. Every colour has its own fixed lane, so runs line
-  up block to block whatever they share a block with. Breaking the block drops
-  one cable per run.
+- **Up to 6 runs share one block** (server config `max_runs_per_block`, 1-8):
+  right-click a cable (or the block it sits on) with a colour it doesn't carry
+  yet to add that run. Every colour has its own fixed lane, so runs line up
+  block to block whatever they share a block with, and they never pass through
+  each other at turns. Breaking the block drops one cable per run.
 - **Covers** fit round the runs in a cable block (all inside its own block space):
-  - **Cable Tray**: steel ladder tray, runs visible. Hangs from drop rods on a
-    strut when there's a ceiling directly above; enclosed riser going up/down.
-  - **Cable Trunking**: closed white duct, runs hidden.
+  - **Cable Tray**: galvanised ladder tray with rungs and slotted rails, runs
+    visible. Becomes a slatted riser going up or down. Holds itself up: a
+    stand on a floor, brackets (or clips, for risers) to a wall next to it,
+    drop rods from a ceiling.
+  - **Cable Trunking**: closed white duct, runs hidden. Sits flush against a
+    wall or floor next to it; ends are only capped where they're open to the
+    air, so it joins trays and other cable cleanly.
   - **Disguise**: right-click a cable with a plain full block (bricks, planks,
     stone, concrete...) and it looks and acts like that block: solid, blocks
     light. Sneak + right-click to place the block next to the cable instead.
@@ -100,4 +105,9 @@ wget https://raw.githubusercontent.com/MADDXSTUDIOS/CCSN/main/lua/nastest.lua na
 
 - `tools/gen_assets.py` generates every texture, model and the NAS blockstate.
 - `tools/preview_models.py out.png` renders the real model files to check them.
+- `tools/gen_net_assets.py` generates the networking textures, models and blockstates.
+- `tools/geocheck/run.sh` compiles the real cable geometry against small
+  Minecraft stubs and proves no two strands (or a strand and the tray) ever
+  overlap; `tools/geocheck/run.sh scenes out/` renders preview scenes with
+  `tools/zrender.py`.
 - See `DESIGN.md` for the full plan and roadmap.

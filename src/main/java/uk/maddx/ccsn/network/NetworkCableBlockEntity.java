@@ -22,6 +22,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 import org.jetbrains.annotations.Nullable;
+import uk.maddx.ccsn.CCSNConfig;
 import uk.maddx.ccsn.ModRegistry;
 
 import java.util.ArrayList;
@@ -35,8 +36,8 @@ import java.util.Map;
  * grey cable and modems can't connect; we link cable to cable and cable to wall jack ourselves.
  */
 public final class NetworkCableBlockEntity extends BlockEntity implements NetworkScheduler.Refreshable {
-    /** Packed colours + directions + cover, for the client model. See {@link CableLanes#key}. */
-    public static final ModelProperty<Long> RENDER_KEY = new ModelProperty<>();
+    /** Everything the client model needs to draw this block. */
+    public static final ModelProperty<CableRender> RENDER = new ModelProperty<>();
     /** The block a disguised cable looks like. */
     public static final ModelProperty<BlockState> DISGUISE = new ModelProperty<>();
 
@@ -48,8 +49,8 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
     /** Tray or trunking (or none). A disguise is tracked separately. */
     private int cover = CableLanes.COVER_NONE;
     private @Nullable BlockState disguise;
-    /** Solid ceiling above? Trays hang from it. Worked out on the server, synced. */
-    private boolean ceiling;
+    /** Sides with a solid face next to us (walls, floor, ceiling), and sides with more cable. Server works them out, synced. */
+    private int solidSides, cableSides;
 
     public NetworkCableBlockEntity(BlockPos pos, BlockState state) {
         super(ModRegistry.NETWORK_CABLE_BLOCK_ENTITY.get(), pos, state);
@@ -66,7 +67,7 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
     }
 
     public List<DyeColor> colours() {
-        List<DyeColor> out = new ArrayList<>(CableLanes.MAX_RUNS);
+        List<DyeColor> out = new ArrayList<>(CableLanes.ABSOLUTE_MAX_RUNS);
         for (DyeColor colour : DyeColor.values()) {
             if (has(colour)) out.add(colour);
         }
@@ -80,9 +81,9 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         return null;
     }
 
-    public long renderKey() {
+    public CableRender render() {
         int coverType = disguise != null ? CableLanes.COVER_DISGUISE : cover;
-        return CableLanes.withCover(CableLanes.key(colourBits, masks), coverType, ceiling);
+        return CableRender.of(colourBits, masks, solidSides, cableSides, coverType);
     }
 
     // ---- Covers ----
@@ -151,7 +152,7 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
 
     /** Add a run. Returns false if it's already here or the block is full. */
     public boolean addColour(DyeColor colour) {
-        if (has(colour) || colourCount() >= CableLanes.MAX_RUNS) return false;
+        if (has(colour) || colourCount() >= CCSNConfig.maxRunsPerBlock()) return false;
         colourBits |= 1 << colour.ordinal();
         masks[colour.ordinal()] = 0;
         setChanged();
@@ -225,10 +226,23 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
             }
         }
 
-        BlockPos above = worldPosition.above();
-        boolean ceilingNow = level.isLoaded(above) && level.getBlockState(above).isFaceSturdy(level, above, Direction.DOWN);
-        if (ceilingNow != ceiling) {
-            ceiling = ceilingNow;
+        // What's round us, for the tray's supports and the trunking's ends.
+        int solidNow = 0, cablesNow = 0;
+        for (Direction dir : Direction.values()) {
+            BlockPos other = worldPosition.relative(dir);
+            int bit = 1 << dir.ordinal();
+            if (!level.isLoaded(other)) {
+                solidNow |= solidSides & bit;
+                cablesNow |= cableSides & bit;
+                continue;
+            }
+            BlockState state = level.getBlockState(other);
+            if (state.isFaceSturdy(level, other, dir.getOpposite())) solidNow |= bit;
+            if (state.getBlock() instanceof NetworkCableBlock) cablesNow |= bit;
+        }
+        if (solidNow != solidSides || cablesNow != cableSides) {
+            solidSides = solidNow;
+            cableSides = cablesNow;
             changed = true;
         }
 
@@ -267,7 +281,8 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         tag.putInt("Colours", colourBits);
         tag.putIntArray("Masks", masks);
         tag.putInt("Cover", cover);
-        tag.putBoolean("Ceiling", ceiling);
+        tag.putInt("Solid", solidSides);
+        tag.putInt("Cables", cableSides);
         if (disguise != null) tag.put("Disguise", NbtUtils.writeBlockState(disguise));
     }
 
@@ -279,7 +294,8 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         for (int i = 0; i < masks.length; i++) masks[i] = i < saved.length ? saved[i] & 0x3F : 0;
         cover = tag.getInt("Cover") & 3;
         if (cover == CableLanes.COVER_DISGUISE) cover = CableLanes.COVER_NONE;
-        ceiling = tag.getBoolean("Ceiling");
+        solidSides = tag.getInt("Solid") & 0x3F;
+        cableSides = tag.getInt("Cables") & 0x3F;
         disguise = tag.contains("Disguise")
             ? NbtUtils.readBlockState(registries.lookupOrThrow(Registries.BLOCK), tag.getCompound("Disguise"))
             : null;
@@ -306,7 +322,7 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
 
     @Override
     public ModelData getModelData() {
-        ModelData.Builder data = ModelData.builder().with(RENDER_KEY, renderKey());
+        ModelData.Builder data = ModelData.builder().with(RENDER, render());
         if (disguise != null) data.with(DISGUISE, disguise);
         return data.build();
     }

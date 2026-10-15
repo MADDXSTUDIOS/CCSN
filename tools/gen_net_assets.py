@@ -68,38 +68,38 @@ for x in range(16):
 for y in range(0, 16, 2):
     for x in range(16): px(boot, x, y, noise((96, 100, 106), 2))   # grip ridges
 boot.save(f'{BT}/patch_lead_boot.png')
-# RJ45 plug: clear plastic body; gold contacts along the front of the top face (auto UV of the
-# top face lands on cols 5..10, rows 12..13), coloured wires showing through behind them.
+# RJ45 plug: clear plastic body. The top face (auto UV: cols 5..10, rows 11..14) shows the wires
+# faintly through the plastic and a row of contacts at the front; kept muted so it reads as one plug.
 plug = img()
+PLASTIC = (214, 224, 230)
+def through(c, k): return tuple(int(p * (1 - k) + w * k) for p, w in zip(PLASTIC, c))
 for x in range(16):
-    for y in range(16): px(plug, x, y, noise((214, 224, 230), 3))
-WIRES = [(230, 150, 60), (200, 120, 40), (90, 170, 90), (60, 110, 200)]
+    for y in range(16): px(plug, x, y, noise(PLASTIC, 2))
+WIRES = [(200, 140, 80), (110, 150, 110), (100, 130, 180), (150, 120, 90)]
 for i, x in enumerate(range(5, 11)):
-    px(plug, x, 13, (222, 186, 74) if i % 2 == 0 else (176, 142, 52))   # gold contacts
-    px(plug, x, 12, WIRES[i % 4])                                          # wires under the clear top
-    px(plug, x, 11, tuple(min(255, c + 30) for c in WIRES[i % 4]))
-for x in range(16): px(plug, x, 6, (190, 200, 206))                       # moulding line on the sides
+    px(plug, x, 12, through(WIRES[i % 4], 0.35))                       # wires under the clear top
+    px(plug, x, 13, through((200, 170, 90), 0.45 if i % 2 == 0 else 0.25))  # contacts
+for x in range(16): px(plug, x, 6, (198, 208, 214))                       # moulding line on the sides
 plug.save(f'{BT}/rj45_plug.png')
 
 # ---- Covers ----
-STEEL = (158, 164, 172); STEEL_D = (126, 132, 140); STEEL_L = (186, 192, 200)
-tray = img()                                          # galvanised steel rail / riser sheet
+STEEL = (186, 192, 200); STEEL_D = (150, 156, 164); STEEL_L = (208, 214, 222)
+# Galvanised sheet steel: smooth and bright, with the large soft zinc "spangle" patches rather than
+# per-pixel speckle (that read as stone). No edge rows: UVs come from position, so an edge row would
+# show as a stripe at every block boundary.
+tray = img()
+seeds = [(random.uniform(0, 16), random.uniform(0, 16), random.randint(-7, 7)) for _ in range(9)]
 for x in range(16):
     for y in range(16):
-        c = noise(STEEL, 4)
-        if random.random() < 0.06: c = noise(STEEL_L, 3)   # zinc spangle
-        px(tray, x, y, c)
-for x in range(16): px(tray, x, 0, STEEL_L); px(tray, x, 15, STEEL_D)
+        # nearest seed (wrapping, so the texture tiles) picks the patch's brightness
+        def dist(sd): dx = min(abs(x - sd[0]), 16 - abs(x - sd[0])); dy = min(abs(y - sd[1]), 16 - abs(y - sd[1])); return dx * dx + dy * dy
+        k = min(seeds, key=dist)[2]
+        px(tray, x, y, noise(tuple(v + k for v in STEEL), 1))
 tray.save(f'{BT}/cable_tray.png')
-floor = img()                                         # ladder tray: rungs every 4 px, dark gaps between
-for x in range(16):
-    for y in range(16):
-        rung = (x % 4) in (0, 1)
-        px(floor, x, y, noise(STEEL if rung else (70, 74, 80), 3))
-floor.save(f'{BT}/cable_tray_floor.png')
+if os.path.exists(f'{BT}/cable_tray_floor.png'): os.remove(f'{BT}/cable_tray_floor.png')  # rungs are real geometry now
 rod = img()                                           # threaded drop rod / strut
 for x in range(16):
-    for y in range(16): px(rod, x, y, noise((110, 114, 120) if y % 2 else (136, 140, 146), 2))
+    for y in range(16): px(rod, x, y, noise((112, 116, 122) if y % 2 else (128, 132, 138), 1))
 rod.save(f'{BT}/cable_rod.png')
 trunk = img()                                         # white PVC office trunking with a lid seam
 for x in range(16):
@@ -108,11 +108,13 @@ for x in range(16): px(trunk, x, 3, (196, 198, 194)); px(trunk, x, 12, (196, 198
 trunk.save(f'{BT}/cable_trunking.png')
 
 # Item icons
-ti = img()                                            # a short length of ladder tray
-for x in range(2, 14):
-    px(ti, x, 6, STEEL_L); px(ti, x, 11, STEEL_D)
-    for y in range(7, 11): px(ti, x, y, STEEL if x % 3 == 0 else (60, 64, 70))
-for y in range(4, 12): px(ti, 2, y, STEEL_L); px(ti, 13, y, STEEL_D)
+ti = img()                                            # a short length of tray side-on: slotted rail
+for x in range(1, 15):
+    px(ti, x, 4, STEEL_L); px(ti, x, 5, STEEL)                      # top lip
+    px(ti, x, 10, STEEL); px(ti, x, 11, STEEL_D)                    # bottom stringer
+for x in (1, 2, 5, 6, 9, 10, 13, 14):                               # posts, open slots between
+    for y in range(6, 10): px(ti, x, y, STEEL if x % 2 else STEEL_L)
+for x in range(2, 14): px(ti, x, 12, (120, 124, 130))               # rung ends under it
 ti.save(f'{IT}/cable_tray.png')
 tk = img()                                            # a length of trunking, end on
 rect(tk, 2, 4, 13, 11, (226, 228, 224)); rect(tk, 2, 4, 13, 4, (246, 248, 244)); rect(tk, 2, 11, 13, 11, (180, 182, 178))

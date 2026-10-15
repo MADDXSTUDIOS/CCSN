@@ -30,13 +30,14 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import uk.maddx.ccsn.CCSNConfig;
 import uk.maddx.ccsn.ModRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A block of network cable carrying up to {@link CableLanes#MAX_RUNS} separate runs, one per
+ * A block of network cable carrying up to {@link CCSNConfig#maxRunsPerBlock()} separate runs, one per
  * colour, each in its own lane. A run only joins the same colour next to it, and wall jacks
  * set to that colour: fitted straight onto the cable, or on the far side of a one-block wall.
  * CC's grey cable and modems can't see it at all; the wall jack is the only way in.
@@ -120,8 +121,8 @@ public final class NetworkCableBlock extends BaseEntityBlock {
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (state.getValue(DISGUISED)) return Shapes.block();
-        long key = level.getBlockEntity(pos) instanceof NetworkCableBlockEntity cable ? cable.renderKey() : 0;
-        return CableLanes.shape(key);
+        CableRender render = level.getBlockEntity(pos) instanceof NetworkCableBlockEntity cable ? cable.render() : CableRender.EMPTY;
+        return CableLanes.shape(render);
     }
 
     /** Only a disguised cable hides the faces of the blocks around it (and blocks light). */

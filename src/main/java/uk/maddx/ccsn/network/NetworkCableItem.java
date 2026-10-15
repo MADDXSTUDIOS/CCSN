@@ -15,11 +15,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
+import uk.maddx.ccsn.CCSNConfig;
 
 /**
  * One item per colour, all placing the same cable block. Right-click an existing cable (or the
  * block it sits on) with a colour it doesn't carry yet to add that run to the same block, up to
- * {@link CableLanes#MAX_RUNS}. Sneak + right-click a wall jack to switch it to this colour's run.
+ * the configured limit ({@link CCSNConfig#maxRunsPerBlock()}). Sneak + right-click a wall jack to switch it to this colour's run.
  */
 public final class NetworkCableItem extends BlockItem {
     private final DyeColor colour;
@@ -68,9 +69,10 @@ public final class NetworkCableItem extends BlockItem {
     private InteractionResult addRun(UseOnContext context, NetworkCableBlockEntity cable, BlockPos pos) {
         Level level = context.getLevel();
         Player player = context.getPlayer();
-        if (cable.colourCount() >= CableLanes.MAX_RUNS) {
+        int max = CCSNConfig.maxRunsPerBlock();
+        if (cable.colourCount() >= max) {
             if (player != null && !level.isClientSide) {
-                player.displayClientMessage(Component.translatable("chat.ccsn.cable.full", CableLanes.MAX_RUNS), true);
+                player.displayClientMessage(Component.translatable("chat.ccsn.cable.full", max), true);
             }
             return InteractionResult.FAIL;
         }

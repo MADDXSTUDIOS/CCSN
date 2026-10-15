@@ -18,6 +18,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 import uk.maddx.ccsn.CCSN;
 import uk.maddx.ccsn.network.CableLanes;
+import uk.maddx.ccsn.network.CableRender;
 import uk.maddx.ccsn.network.NetworkCableBlockEntity;
 
 import java.util.ArrayList;
@@ -26,24 +27,25 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Draws a network cable block from its render key: each run is a 2 px strand in its own lane,
- * with a core and an arm out to every side it connects on, plus any tray or trunking round them.
- * A disguised cable is drawn as its disguise block instead. A strand's colour travels as the
- * quad's tint index ({@link #STRAND_TINT} + dye ordinal), which the block colour handler turns
- * into the dye colour; low tint indices are left for the disguise block's own tinting (grass...).
+ * Draws a network cable block from its {@link CableRender}: each run is a 1 px strand in its own
+ * lane (see {@link CableLanes}), plus any tray or trunking round them. A disguised cable is drawn as
+ * its disguise block instead. A strand's colour travels as the quad's tint index
+ * ({@link #STRAND_TINT} + dye ordinal), which the block colour handler turns into the dye colour;
+ * low tint indices are left for the disguise block's own tinting (grass...).
  */
 public final class CableBakedModel implements IDynamicBakedModel {
     public static final int STRAND_TINT = 1000;
     private static final ResourceLocation[] COVER_TEXTURES = {
         null,
         ResourceLocation.fromNamespaceAndPath(CCSN.MOD_ID, "block/cable_tray"),
-        ResourceLocation.fromNamespaceAndPath(CCSN.MOD_ID, "block/cable_tray_floor"),
         ResourceLocation.fromNamespaceAndPath(CCSN.MOD_ID, "block/cable_rod"),
         ResourceLocation.fromNamespaceAndPath(CCSN.MOD_ID, "block/cable_trunking"),
     };
+    /** Plenty for any build; past this the cache starts again rather than growing for ever. */
+    private static final int CACHE_LIMIT = 2048;
 
     private final BakedModel original;
-    private final Map<Long, List<BakedQuad>> cache = new ConcurrentHashMap<>();
+    private final Map<CableRender, List<BakedQuad>> cache = new ConcurrentHashMap<>();
 
     public CableBakedModel(BakedModel original) {
         this.original = original;
@@ -58,49 +60,44 @@ public final class CableBakedModel implements IDynamicBakedModel {
             return model.getQuads(disguise, side, rand, ModelData.EMPTY, renderType);
         }
         if (side != null) return List.of();
-        Long key = data.get(NetworkCableBlockEntity.RENDER_KEY);
-        if (key == null || CableLanes.colours(key) == 0) return List.of();
-        return cache.computeIfAbsent(key, this::build);
+        CableRender render = data.get(NetworkCableBlockEntity.RENDER);
+        if (render == null || render.isEmpty()) return List.of();
+        if (cache.size() > CACHE_LIMIT) cache.clear();
+        return cache.computeIfAbsent(render.normalised(), this::build);
     }
 
-    private List<BakedQuad> build(long key) {
-        TextureAtlasSprite strandSprite = original.getParticleIcon();
+    private List<BakedQuad> build(CableRender render) {
         List<BakedQuad> quads = new ArrayList<>();
-        int cover = CableLanes.cover(key);
 
-        // The runs themselves (hidden inside trunking).
-        if (cover != CableLanes.COVER_TRUNKING) {
-            for (DyeColor colour : CableLanes.present(key)) {
+        // The runs. Inside trunking they're only seen through an open end, so skip them if there's none.
+        boolean hidden = render.cover() == CableLanes.COVER_TRUNKING && (render.union() & render.cables()) == 0;
+        if (!hidden) {
+            TextureAtlasSprite strandSprite = original.getParticleIcon();
+            for (DyeColor colour : render.present()) {
                 int tint = STRAND_TINT + colour.ordinal();
-                for (CableLanes.Box b : CableLanes.strand(colour, CableLanes.mask(key, colour), CableLanes.HALF)) {
-                    for (Direction face : Direction.values()) {
-                        // An arm's two ends are hidden: one inside the core, one against the next block.
-                        if (b.arm() != null && (face == b.arm() || face == b.arm().getOpposite())) continue;
-                        quads.add(quad(strandSprite, face, b, tint));
-                    }
-                }
+                for (CableLanes.Box b : CableLanes.strand(colour, render.mask(colour), 0)) addBox(quads, strandSprite, b, tint);
             }
         }
 
         // Tray or trunking round them.
-        List<CableLanes.Box> coverBoxes = cover == CableLanes.COVER_TRAY
-            ? CableLanes.tray(CableLanes.unionMask(key), CableLanes.ceiling(key))
-            : cover == CableLanes.COVER_TRUNKING ? CableLanes.trunking(CableLanes.unionMask(key)) : List.of();
-        if (!coverBoxes.isEmpty()) {
+        List<CableLanes.Box> cover = CableLanes.cover(render);
+        if (!cover.isEmpty()) {
             var atlas = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
-            for (CableLanes.Box b : coverBoxes) {
-                TextureAtlasSprite sprite = atlas.apply(COVER_TEXTURES[b.tex()]);
-                for (Direction face : Direction.values()) {
-                    // A trunking arm's inner end is inside the middle box; its outer end stays as an end cap.
-                    if (b.arm() != null && face == b.arm().getOpposite()) continue;
-                    quads.add(quad(sprite, face, b, -1));
-                }
-            }
+            for (CableLanes.Box b : cover) addBox(quads, atlas.apply(COVER_TEXTURES[b.tex()]), b, -1);
         }
         return List.copyOf(quads);
     }
 
-    private static BakedQuad quad(TextureAtlasSprite sprite, Direction face, CableLanes.Box b, int tint) {
+    private static void addBox(List<BakedQuad> quads, TextureAtlasSprite sprite, CableLanes.Box b, int tint) {
+        for (Direction face : Direction.values()) {
+            if (!b.draws(face)) continue;
+            quads.add(quad(sprite, face, b, tint, false));
+            if (b.twoSided()) quads.add(quad(sprite, face, b, tint, true));
+        }
+    }
+
+    /** One face of a box. {@code inside} draws it facing into the box instead (for hollow trunking). */
+    private static BakedQuad quad(TextureAtlasSprite sprite, Direction face, CableLanes.Box b, int tint, boolean inside) {
         float x1 = b.x1(), y1 = b.y1(), z1 = b.z1(), x2 = b.x2(), y2 = b.y2(), z2 = b.z2();
         // Corner order matches vanilla's FaceInfo, so each face winds outwards.
         float[][] v = switch (face) {
@@ -111,10 +108,12 @@ public final class CableBakedModel implements IDynamicBakedModel {
             case WEST -> new float[][] { { x1, y2, z1 }, { x1, y1, z1 }, { x1, y1, z2 }, { x1, y2, z2 } };
             case EAST -> new float[][] { { x2, y2, z2 }, { x2, y1, z2 }, { x2, y1, z1 }, { x2, y2, z1 } };
         };
-        int normal = packNormal(face);
+        Direction facing = inside ? face.getOpposite() : face;
+        int normal = packNormal(facing);
         int[] data = new int[32];
         for (int i = 0; i < 4; i++) {
-            float x = v[i][0], y = v[i][1], z = v[i][2];
+            float[] p = v[inside ? 3 - i : i]; // reversed winding faces the other way
+            float x = p[0], y = p[1], z = p[2];
             // Texture coordinates from position, like vanilla's automatic UVs (0..16).
             float[] uv = switch (face) {
                 case DOWN -> new float[] { x, 16 - z };
@@ -135,7 +134,7 @@ public final class CableBakedModel implements IDynamicBakedModel {
             data[o + 6] = 0; // lightmap, filled in by the renderer
             data[o + 7] = normal;
         }
-        return new BakedQuad(data, tint, face, sprite, true);
+        return new BakedQuad(data, tint, facing, sprite, true);
     }
 
     private static int packNormal(Direction face) {
