@@ -175,7 +175,7 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 | v0.3.2 | Bundling (up to 4 runs per block) ✅ tested in-game (two NASes on separate runs, drive swaps across them) |
 | v0.3.5 | Covers: disguise, cable tray, trunking + wrench ✅ tested in-game (fix list below came out of it) |
 | v0.3.6 | Polish: fix list 1-6 and 8-12 (layered strands, ladder tray, risers, supports, trunking ends, 6-8 runs per block) ✅ tested in-game |
-| v0.3.7 | Trunking fills outside corners and caps mismatched joins; deeper tray so runs sit inside the rails 🧪 |
+| v0.3.7 | Trunking fills outside corners and caps mismatched joins; deeper tray so runs sit inside the rails ✅ tested in-game |
 | v0.3.x | Network Switch (hub, ports, chaining) |
 | v0.3.x | Patch Panel, switch extras (VLANs, GUI, Lua) |
 | v0.4 | Server Rack and T1–T3 blades |
