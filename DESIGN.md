@@ -193,6 +193,9 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
    tray: right now the painted stripes follow the texture's direction, so a
    tray running east-west shows lengthwise stripes while north-south shows
    rungs.
+10. **Riser floats at the bottom:** the bottom block of a riser stops 3 px
+    above the block it stands on. When there's a solid block underneath, add
+    feet / a base flange down to it (like the drop rods do for ceilings).
 
 ## Release checklist
 
