@@ -54,5 +54,13 @@
   "chat.ccsn.wall_jack.other_runs": "Other runs here: %s (sneak + right-click the jack with a cable to switch)",
   "chat.ccsn.wall_jack.switched": "Jack switched to the %s run",
   "chat.ccsn.wall_jack.no_such_run": "There is no %s run behind this jack",
-  "chat.ccsn.cable.full": "This cable already carries %s runs"
+  "chat.ccsn.cable.full": "This cable already carries %s runs",
+  "chat.ccsn.cable.already_covered": "This cable already has that cover",
+  "chat.ccsn.wrench.no_cover": "Nothing to take off this cable",
+  "chat.ccsn.wrench.removed": "Took off: %s",
+  "chat.ccsn.wrench.status": "Network cable. Runs: %s. Cover: %s (sneak + right-click with the wrench to take it off)",
+  "chat.ccsn.wrench.cover_none": "none",
+  "item.ccsn.cable_tray": "Cable Tray",
+  "item.ccsn.cable_trunking": "Cable Trunking",
+  "item.ccsn.wrench": "Network Wrench"
 }

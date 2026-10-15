@@ -29,11 +29,14 @@ import uk.maddx.ccsn.nas.NasBlock;
 import uk.maddx.ccsn.nas.NasBlockEntity;
 import uk.maddx.ccsn.nas.NasItem;
 import uk.maddx.ccsn.nas.NasMenu;
+import uk.maddx.ccsn.network.CableCoverItem;
+import uk.maddx.ccsn.network.CableLanes;
 import uk.maddx.ccsn.network.NetworkCableBlock;
 import uk.maddx.ccsn.network.NetworkCableBlockEntity;
 import uk.maddx.ccsn.network.NetworkCableItem;
 import uk.maddx.ccsn.network.WallJackBlock;
 import uk.maddx.ccsn.network.WallJackBlockEntity;
+import uk.maddx.ccsn.network.WrenchItem;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -122,8 +125,7 @@ public final class ModRegistry {
             .mapColor(MapColor.WOOL)
             .strength(0.8f)
             .sound(SoundType.WOOL)
-            .noOcclusion()
-            .dynamicShape() // shape comes from the block entity (which runs, which way)
+            .dynamicShape() // shape comes from the block entity (which runs, which way, any cover)
             .pushReaction(PushReaction.DESTROY)
     ));
 
@@ -139,6 +141,13 @@ public final class ModRegistry {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NetworkCableBlockEntity>> NETWORK_CABLE_BLOCK_ENTITY =
         BLOCK_ENTITIES.register("network_cable",
             () -> BlockEntityType.Builder.of(NetworkCableBlockEntity::new, NETWORK_CABLE.get()).build(null));
+
+    public static final DeferredItem<CableCoverItem> CABLE_TRAY =
+        ITEMS.register("cable_tray", () -> new CableCoverItem(CableLanes.COVER_TRAY, new Item.Properties()));
+    public static final DeferredItem<CableCoverItem> CABLE_TRUNKING =
+        ITEMS.register("cable_trunking", () -> new CableCoverItem(CableLanes.COVER_TRUNKING, new Item.Properties()));
+    public static final DeferredItem<WrenchItem> WRENCH =
+        ITEMS.register("wrench", () -> new WrenchItem(new Item.Properties().stacksTo(1)));
 
     public static final DeferredBlock<WallJackBlock> WALL_JACK = BLOCKS.register("wall_jack", () -> new WallJackBlock(
         BlockBehaviour.Properties.of()
@@ -171,6 +180,9 @@ public final class ModRegistry {
                 output.accept(CHIPSET_T2.get());
                 output.accept(CHIPSET_T3.get());
                 output.accept(WALL_JACK_ITEM.get());
+                output.accept(WRENCH.get());
+                output.accept(CABLE_TRAY.get());
+                output.accept(CABLE_TRUNKING.get());
                 for (DyeColor colour : DyeColor.values()) output.accept(NETWORK_CABLE_ITEMS.get(colour).get());
             })
             .build());

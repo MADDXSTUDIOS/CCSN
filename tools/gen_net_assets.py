@@ -81,6 +81,55 @@ for i, x in enumerate(range(5, 11)):
 for x in range(16): px(plug, x, 6, (190, 200, 206))                       # moulding line on the sides
 plug.save(f'{BT}/rj45_plug.png')
 
+# ---- Covers ----
+STEEL = (158, 164, 172); STEEL_D = (126, 132, 140); STEEL_L = (186, 192, 200)
+tray = img()                                          # galvanised steel rail / riser sheet
+for x in range(16):
+    for y in range(16):
+        c = noise(STEEL, 4)
+        if random.random() < 0.06: c = noise(STEEL_L, 3)   # zinc spangle
+        px(tray, x, y, c)
+for x in range(16): px(tray, x, 0, STEEL_L); px(tray, x, 15, STEEL_D)
+tray.save(f'{BT}/cable_tray.png')
+floor = img()                                         # ladder tray: rungs every 4 px, dark gaps between
+for x in range(16):
+    for y in range(16):
+        rung = (x % 4) in (0, 1)
+        px(floor, x, y, noise(STEEL if rung else (70, 74, 80), 3))
+floor.save(f'{BT}/cable_tray_floor.png')
+rod = img()                                           # threaded drop rod / strut
+for x in range(16):
+    for y in range(16): px(rod, x, y, noise((110, 114, 120) if y % 2 else (136, 140, 146), 2))
+rod.save(f'{BT}/cable_rod.png')
+trunk = img()                                         # white PVC office trunking with a lid seam
+for x in range(16):
+    for y in range(16): px(trunk, x, y, noise((228, 230, 226), 2))
+for x in range(16): px(trunk, x, 3, (196, 198, 194)); px(trunk, x, 12, (196, 198, 194))
+trunk.save(f'{BT}/cable_trunking.png')
+
+# Item icons
+ti = img()                                            # a short length of ladder tray
+for x in range(2, 14):
+    px(ti, x, 6, STEEL_L); px(ti, x, 11, STEEL_D)
+    for y in range(7, 11): px(ti, x, y, STEEL if x % 3 == 0 else (60, 64, 70))
+for y in range(4, 12): px(ti, 2, y, STEEL_L); px(ti, 13, y, STEEL_D)
+ti.save(f'{IT}/cable_tray.png')
+tk = img()                                            # a length of trunking, end on
+rect(tk, 2, 4, 13, 11, (226, 228, 224)); rect(tk, 2, 4, 13, 4, (246, 248, 244)); rect(tk, 2, 11, 13, 11, (180, 182, 178))
+rect(tk, 2, 6, 13, 6, (200, 202, 198)); rect(tk, 13, 4, 13, 11, (196, 198, 194))
+tk.save(f'{IT}/cable_trunking.png')
+wr = img()                                            # wrench
+for i in range(9):
+    x, y = 3 + i, 12 - i
+    px(wr, x, y, (150, 156, 166)); px(wr, x + 1, y, (110, 116, 126))
+for p in [(11, 1), (12, 1), (13, 2), (13, 3), (12, 4), (10, 2), (9, 3), (10, 3)]: px(wr, *p, (170, 176, 186))
+px(wr, 11, 2, (0, 0, 0, 0)); px(wr, 12, 2, (0, 0, 0, 0)); px(wr, 12, 3, (0, 0, 0, 0))
+rect(wr, 2, 12, 4, 14, (200, 60, 50)); rect(wr, 3, 11, 5, 13, (200, 60, 50))   # red grip
+wr.save(f'{IT}/wrench.png')
+for name in ('cable_tray', 'cable_trunking', 'wrench'):
+    jdump({'parent': 'minecraft:item/handheld' if name == 'wrench' else 'minecraft:item/generated',
+           'textures': {'layer0': f'ccsn:item/{name}'}}, f'{IM}/{name}.json')
+
 # Cable item: a loose coil with a plug on the end, greyscale for tinting.
 coil = img()
 cx, cy = 7.5, 7.0
@@ -110,7 +159,8 @@ def faces(names, tex='#cable', tint=True):
 # The cable is drawn in code from its block entity (CableBakedModel); this model only names the
 # texture (used for the strands and break particles).
 jdump({'textures': {'particle': 'ccsn:block/network_cable'}}, f'{BM}/network_cable.json')
-jdump({'variants': {'': {'model': 'ccsn:block/network_cable'}}}, f'{BS}/network_cable.json')
+jdump({'variants': {f'disguised={d}': {'model': 'ccsn:block/network_cable'} for d in ('false', 'true')}},
+      f'{BS}/network_cable.json')
 for old in ('network_cable_core', 'network_cable_arm'):
     if os.path.exists(f'{BM}/{old}.json'): os.remove(f'{BM}/{old}.json')
 
@@ -210,6 +260,14 @@ lang.update({
     'chat.ccsn.wall_jack.switched': 'Jack switched to the %s run',
     'chat.ccsn.wall_jack.no_such_run': 'There is no %s run behind this jack',
     'chat.ccsn.cable.full': 'This cable already carries %s runs',
+    'chat.ccsn.cable.already_covered': 'This cable already has that cover',
+    'chat.ccsn.wrench.no_cover': 'Nothing to take off this cable',
+    'chat.ccsn.wrench.removed': 'Took off: %s',
+    'chat.ccsn.wrench.status': 'Network cable. Runs: %s. Cover: %s (sneak + right-click with the wrench to take it off)',
+    'chat.ccsn.wrench.cover_none': 'none',
+    'item.ccsn.cable_tray': 'Cable Tray',
+    'item.ccsn.cable_trunking': 'Cable Trunking',
+    'item.ccsn.wrench': 'Network Wrench',
 })
 for c in COLOURS:
     lang[f'item.ccsn.network_cable_{c}'] = ' '.join(w.capitalize() for w in c.split('_')) + ' Network Cable'

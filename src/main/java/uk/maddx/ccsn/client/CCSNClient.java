@@ -1,9 +1,11 @@
 package uk.maddx.ccsn.client;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -12,6 +14,7 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import uk.maddx.ccsn.CCSN;
 import uk.maddx.ccsn.ModRegistry;
+import uk.maddx.ccsn.network.NetworkCableBlockEntity;
 import uk.maddx.ccsn.network.NetworkCableItem;
 import uk.maddx.ccsn.network.WallJackBlock;
 
@@ -44,9 +47,17 @@ public final class CCSNClient {
 
     @SubscribeEvent
     public static void registerBlockColours(RegisterColorHandlersEvent.Block event) {
-        // Cable quads carry their colour as tint index (ordinal + 1); see CableBakedModel.
-        event.register((state, level, pos, tintIndex) ->
-            tintIndex >= 1 && tintIndex <= 16 ? tint(DyeColor.byId(tintIndex - 1)) : -1, ModRegistry.NETWORK_CABLE.get());
+        // Cable strands carry their colour as tint index (STRAND_TINT + ordinal); see CableBakedModel.
+        // Lower tint indices belong to a disguise block (grass, say): ask that block's own colour handler.
+        event.register((state, level, pos, tintIndex) -> {
+            int strand = tintIndex - CableBakedModel.STRAND_TINT;
+            if (strand >= 0 && strand < 16) return tint(DyeColor.byId(strand));
+            if (tintIndex >= 0 && level != null && pos != null
+                && level.getBlockEntity(pos) instanceof NetworkCableBlockEntity cable && cable.disguise() != null) {
+                return Minecraft.getInstance().getBlockColors().getColor(cable.disguise(), level, pos, tintIndex);
+            }
+            return -1;
+        }, ModRegistry.NETWORK_CABLE.get());
 
         event.register((state, level, pos, tintIndex) -> {
             if (tintIndex != 0) return -1;
@@ -58,10 +69,11 @@ public final class CCSNClient {
     /** Network cable is drawn from its block entity's data, not a fixed model. */
     @SubscribeEvent
     public static void modifyBakingResult(ModelEvent.ModifyBakingResult event) {
-        ModelResourceLocation location = BlockModelShaper.stateToModelLocation(
-            ModRegistry.NETWORK_CABLE.get().defaultBlockState());
-        BakedModel original = event.getModels().get(location);
-        if (original != null) event.getModels().put(location, new CableBakedModel(original));
+        for (BlockState state : ModRegistry.NETWORK_CABLE.get().getStateDefinition().getPossibleStates()) {
+            ModelResourceLocation location = BlockModelShaper.stateToModelLocation(state);
+            BakedModel original = event.getModels().get(location);
+            if (original != null) event.getModels().put(location, new CableBakedModel(original));
+        }
     }
 
     @SubscribeEvent

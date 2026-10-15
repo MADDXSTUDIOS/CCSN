@@ -4,19 +4,31 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import uk.maddx.ccsn.ModRegistry;
 
@@ -29,14 +41,26 @@ import java.util.List;
  * set to that colour: fitted straight onto the cable, or on the far side of a one-block wall.
  * CC's grey cable and modems can't see it at all; the wall jack is the only way in.
  *
- * All the per-block data (colours, which way each run goes) lives in the block entity and is
- * drawn by a dynamic model, so the block itself has a single state.
+ * All the per-block data (colours, which way each run goes, any cover) lives in the block entity
+ * and is drawn by a dynamic model. The only block-state property is "disguised", because that
+ * changes how the block behaves in the world (solid, blocks light).
+ *
+ * Covers: a cable tray, trunking, or a disguise (right-click with a plain full block). The wrench
+ * takes them off.
  */
 public final class NetworkCableBlock extends BaseEntityBlock {
     public static final MapCodec<NetworkCableBlock> CODEC = simpleCodec(NetworkCableBlock::new);
+    /** Disguised as a full block: solid, blocks light, full collision. The look itself is in the block entity. */
+    public static final BooleanProperty DISGUISED = BooleanProperty.create("disguised");
 
     public NetworkCableBlock(Properties properties) {
         super(properties);
+        registerDefaultState(stateDefinition.any().setValue(DISGUISED, false));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(DISGUISED);
     }
 
     @Override
@@ -95,8 +119,54 @@ public final class NetworkCableBlock extends BaseEntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        if (state.getValue(DISGUISED)) return Shapes.block();
         long key = level.getBlockEntity(pos) instanceof NetworkCableBlockEntity cable ? cable.renderKey() : 0;
         return CableLanes.shape(key);
+    }
+
+    /** Only a disguised cable hides the faces of the blocks around it (and blocks light). */
+    @Override
+    protected VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+        return state.getValue(DISGUISED) ? Shapes.block() : Shapes.empty();
+    }
+
+    // ---- Disguise ----
+
+    /** A block you can disguise cable as: a plain, solid, full cube with no block entity (bricks, planks, stone...). */
+    static boolean canDisguiseAs(BlockState state, BlockGetter level, BlockPos pos) {
+        Block block = state.getBlock();
+        if (block instanceof NetworkCableBlock || block instanceof WallJackBlock) return false;
+        if (state.hasBlockEntity() || state.getRenderShape() != RenderShape.MODEL) return false;
+        return state.isSolidRender(level, pos) && state.isCollisionShapeFullBlock(level, pos);
+    }
+
+    /**
+     * Right-click with a plain full block (bricks, planks, concrete...) to disguise the cable as it.
+     * Sneak to place the block next to the cable instead. Anything else: carry on as normal.
+     */
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!(stack.getItem() instanceof BlockItem blockItem)
+            || !(level.getBlockEntity(pos) instanceof NetworkCableBlockEntity cable)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        BlockState look = blockItem.getBlock().getStateForPlacement(
+            new BlockPlaceContext(new UseOnContext(player, hand, hit)));
+        if (look == null || !canDisguiseAs(look, level, pos)) look = blockItem.getBlock().defaultBlockState();
+        if (!canDisguiseAs(look, level, pos)) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (look.equals(cable.disguise())) return ItemInteractionResult.CONSUME;
+
+        if (!level.isClientSide) {
+            ItemStack old = cable.setDisguise(look);
+            if (!player.hasInfiniteMaterials()) {
+                stack.shrink(1);
+                if (!old.isEmpty()) player.getInventory().placeItemBackInInventory(old);
+            }
+            SoundType sound = look.getSoundType(level, pos, player);
+            level.playSound(null, pos, sound.getPlaceSound(), SoundSource.BLOCKS, sound.getVolume(), sound.getPitch());
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
@@ -111,7 +181,7 @@ public final class NetworkCableBlock extends BaseEntityBlock {
 
     // ---- Items ----
 
-    /** One cable item back per run. */
+    /** One cable item back per run, plus the cover (tray, trunking or the disguise block). */
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         List<ItemStack> drops = new ArrayList<>();
@@ -119,6 +189,8 @@ public final class NetworkCableBlock extends BaseEntityBlock {
             for (DyeColor colour : cable.colours()) {
                 drops.add(new ItemStack(ModRegistry.NETWORK_CABLE_ITEMS.get(colour).get()));
             }
+            ItemStack cover = cable.coverItem();
+            if (!cover.isEmpty()) drops.add(cover);
         }
         return drops;
     }

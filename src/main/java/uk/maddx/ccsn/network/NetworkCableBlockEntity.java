@@ -6,11 +6,14 @@ import dan200.computercraft.api.network.wired.WiredNode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -32,14 +35,21 @@ import java.util.Map;
  * grey cable and modems can't connect; we link cable to cable and cable to wall jack ourselves.
  */
 public final class NetworkCableBlockEntity extends BlockEntity implements NetworkScheduler.Refreshable {
-    /** Packed colours + directions, for the client model. See {@link CableLanes#key}. */
+    /** Packed colours + directions + cover, for the client model. See {@link CableLanes#key}. */
     public static final ModelProperty<Long> RENDER_KEY = new ModelProperty<>();
+    /** The block a disguised cable looks like. */
+    public static final ModelProperty<BlockState> DISGUISE = new ModelProperty<>();
 
     private int colourBits;
     /** Per colour ordinal: the 6 sides that run reaches out to. Worked out on the server, synced. */
     private final int[] masks = new int[16];
     /** Server only. */
     private final Map<DyeColor, Strand> strands = new EnumMap<>(DyeColor.class);
+    /** Tray or trunking (or none). A disguise is tracked separately. */
+    private int cover = CableLanes.COVER_NONE;
+    private @Nullable BlockState disguise;
+    /** Solid ceiling above? Trays hang from it. Worked out on the server, synced. */
+    private boolean ceiling;
 
     public NetworkCableBlockEntity(BlockPos pos, BlockState state) {
         super(ModRegistry.NETWORK_CABLE_BLOCK_ENTITY.get(), pos, state);
@@ -71,7 +81,72 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
     }
 
     public long renderKey() {
-        return CableLanes.key(colourBits, masks);
+        int coverType = disguise != null ? CableLanes.COVER_DISGUISE : cover;
+        return CableLanes.withCover(CableLanes.key(colourBits, masks), coverType, ceiling);
+    }
+
+    // ---- Covers ----
+
+    public int cover() {
+        return cover;
+    }
+
+    public @Nullable BlockState disguise() {
+        return disguise;
+    }
+
+    /** The item you'd get back for the current cover (tray, trunking or the disguise block), or empty. */
+    public ItemStack coverItem() {
+        if (disguise != null) return new ItemStack(disguise.getBlock());
+        if (cover == CableLanes.COVER_TRAY) return new ItemStack(ModRegistry.CABLE_TRAY.get());
+        if (cover == CableLanes.COVER_TRUNKING) return new ItemStack(ModRegistry.CABLE_TRUNKING.get());
+        return ItemStack.EMPTY;
+    }
+
+    /** Fit a tray or trunking. Returns whatever cover came off (to give back). */
+    public ItemStack setCover(int newCover) {
+        ItemStack old = coverItem();
+        cover = newCover;
+        setDisguiseState(null);
+        coverChanged();
+        return old;
+    }
+
+    /** Disguise as a block. Returns whatever cover came off (to give back). */
+    public ItemStack setDisguise(BlockState state) {
+        ItemStack old = coverItem();
+        cover = CableLanes.COVER_NONE;
+        setDisguiseState(state);
+        coverChanged();
+        return old;
+    }
+
+    /** Take any cover off. Returns it (to give back). */
+    public ItemStack removeCover() {
+        ItemStack old = coverItem();
+        cover = CableLanes.COVER_NONE;
+        setDisguiseState(null);
+        coverChanged();
+        return old;
+    }
+
+    private void setDisguiseState(@Nullable BlockState state) {
+        disguise = state;
+        // The block itself only knows "disguised or not": that's what makes it solid, block light and so on.
+        if (level != null && !level.isClientSide) {
+            BlockState own = getBlockState();
+            boolean disguised = state != null;
+            if (own.getValue(NetworkCableBlock.DISGUISED) != disguised) {
+                level.setBlock(worldPosition, own.setValue(NetworkCableBlock.DISGUISED, disguised), Block.UPDATE_ALL);
+            }
+        }
+    }
+
+    private void coverChanged() {
+        setChanged();
+        if (level == null || level.isClientSide) return;
+        BlockState state = getBlockState();
+        level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
     }
 
     /** Add a run. Returns false if it's already here or the block is full. */
@@ -150,6 +225,13 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
             }
         }
 
+        BlockPos above = worldPosition.above();
+        boolean ceilingNow = level.isLoaded(above) && level.getBlockState(above).isFaceSturdy(level, above, Direction.DOWN);
+        if (ceilingNow != ceiling) {
+            ceiling = ceilingNow;
+            changed = true;
+        }
+
         if (changed) {
             setChanged();
             BlockState state = getBlockState();
@@ -184,6 +266,9 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         super.saveAdditional(tag, registries);
         tag.putInt("Colours", colourBits);
         tag.putIntArray("Masks", masks);
+        tag.putInt("Cover", cover);
+        tag.putBoolean("Ceiling", ceiling);
+        if (disguise != null) tag.put("Disguise", NbtUtils.writeBlockState(disguise));
     }
 
     @Override
@@ -192,6 +277,13 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         colourBits = tag.getInt("Colours") & 0xFFFF;
         int[] saved = tag.getIntArray("Masks");
         for (int i = 0; i < masks.length; i++) masks[i] = i < saved.length ? saved[i] & 0x3F : 0;
+        cover = tag.getInt("Cover") & 3;
+        if (cover == CableLanes.COVER_DISGUISE) cover = CableLanes.COVER_NONE;
+        ceiling = tag.getBoolean("Ceiling");
+        disguise = tag.contains("Disguise")
+            ? NbtUtils.readBlockState(registries.lookupOrThrow(Registries.BLOCK), tag.getCompound("Disguise"))
+            : null;
+        if (disguise != null && disguise.isAir()) disguise = null;
 
         if (level != null && level.isClientSide) {
             requestModelDataUpdate();
@@ -214,7 +306,9 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
 
     @Override
     public ModelData getModelData() {
-        return ModelData.builder().with(RENDER_KEY, renderKey()).build();
+        ModelData.Builder data = ModelData.builder().with(RENDER_KEY, renderKey());
+        if (disguise != null) data.with(DISGUISE, disguise);
+        return data.build();
     }
 
     // ---- One run ----

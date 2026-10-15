@@ -4,7 +4,7 @@ Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage with
 hot-swap drives, office network cabling and wall jacks, and (coming) network
 switches, server racks and blades.
 
-**Status: v0.3.4 (test build).** Requires CC:Tweaked 1.120.x.
+**Status: v0.3.5 (test build).** Requires CC:Tweaked 1.120.x.
 
 ## Getting it
 
@@ -41,6 +41,15 @@ plain CC cable. Our cable is the structured cabling in the walls between them.
   on) with a colour it doesn't carry yet to add that run. Every colour has its own fixed lane, so runs line
   up block to block whatever they share a block with. Breaking the block drops
   one cable per run.
+- **Covers** fit round the runs in a cable block (all inside its own block space):
+  - **Cable Tray**: steel ladder tray, runs visible. Hangs from drop rods on a
+    strut when there's a ceiling directly above; enclosed riser going up/down.
+  - **Cable Trunking**: closed white duct, runs hidden.
+  - **Disguise**: right-click a cable with a plain full block (bricks, planks,
+    stone, concrete...) and it looks and acts like that block: solid, blocks
+    light. Sneak + right-click to place the block next to the cable instead.
+  - **Network Wrench**: sneak + right-click a cable to take its cover off (you
+    get it back); right-click to see its runs and cover, or a jack's status.
 - **Wall Jack**: goes on a wall, floor or ceiling. The back plugs into network
   cable directly behind it, **or through the wall**: run the cable behind a
   one-block wall and put the jack on the room side. CC grey cable or a wired

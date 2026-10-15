@@ -1,6 +1,9 @@
 {
   "variants": {
-    "": {
+    "disguised=false": {
+      "model": "ccsn:block/network_cable"
+    },
+    "disguised=true": {
       "model": "ccsn:block/network_cable"
     }
   }

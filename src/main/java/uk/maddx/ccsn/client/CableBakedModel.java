@@ -1,5 +1,6 @@
 package uk.maddx.ccsn.client;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -7,12 +8,15 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.IDynamicBakedModel;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
+import uk.maddx.ccsn.CCSN;
 import uk.maddx.ccsn.network.CableLanes;
 import uk.maddx.ccsn.network.NetworkCableBlockEntity;
 
@@ -23,10 +27,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Draws a network cable block from its render key: each run is a 2 px strand in its own lane,
- * with a core and an arm out to every side it connects on. The colour travels as the quad's
- * tint index (dye ordinal + 1), which the block colour handler turns into the dye colour.
+ * with a core and an arm out to every side it connects on, plus any tray or trunking round them.
+ * A disguised cable is drawn as its disguise block instead. A strand's colour travels as the
+ * quad's tint index ({@link #STRAND_TINT} + dye ordinal), which the block colour handler turns
+ * into the dye colour; low tint indices are left for the disguise block's own tinting (grass...).
  */
 public final class CableBakedModel implements IDynamicBakedModel {
+    public static final int STRAND_TINT = 1000;
+    private static final ResourceLocation[] COVER_TEXTURES = {
+        null,
+        ResourceLocation.fromNamespaceAndPath(CCSN.MOD_ID, "block/cable_tray"),
+        ResourceLocation.fromNamespaceAndPath(CCSN.MOD_ID, "block/cable_tray_floor"),
+        ResourceLocation.fromNamespaceAndPath(CCSN.MOD_ID, "block/cable_rod"),
+        ResourceLocation.fromNamespaceAndPath(CCSN.MOD_ID, "block/cable_trunking"),
+    };
+
     private final BakedModel original;
     private final Map<Long, List<BakedQuad>> cache = new ConcurrentHashMap<>();
 
@@ -37,6 +52,11 @@ public final class CableBakedModel implements IDynamicBakedModel {
     @Override
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand,
                                     ModelData data, @Nullable RenderType renderType) {
+        BlockState disguise = data.get(NetworkCableBlockEntity.DISGUISE);
+        if (disguise != null) {
+            BakedModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(disguise);
+            return model.getQuads(disguise, side, rand, ModelData.EMPTY, renderType);
+        }
         if (side != null) return List.of();
         Long key = data.get(NetworkCableBlockEntity.RENDER_KEY);
         if (key == null || CableLanes.colours(key) == 0) return List.of();
@@ -44,15 +64,36 @@ public final class CableBakedModel implements IDynamicBakedModel {
     }
 
     private List<BakedQuad> build(long key) {
-        TextureAtlasSprite sprite = original.getParticleIcon();
+        TextureAtlasSprite strandSprite = original.getParticleIcon();
         List<BakedQuad> quads = new ArrayList<>();
-        for (DyeColor colour : CableLanes.present(key)) {
-            int tint = colour.ordinal() + 1;
-            for (CableLanes.Box b : CableLanes.strand(colour, CableLanes.mask(key, colour), CableLanes.HALF)) {
+        int cover = CableLanes.cover(key);
+
+        // The runs themselves (hidden inside trunking).
+        if (cover != CableLanes.COVER_TRUNKING) {
+            for (DyeColor colour : CableLanes.present(key)) {
+                int tint = STRAND_TINT + colour.ordinal();
+                for (CableLanes.Box b : CableLanes.strand(colour, CableLanes.mask(key, colour), CableLanes.HALF)) {
+                    for (Direction face : Direction.values()) {
+                        // An arm's two ends are hidden: one inside the core, one against the next block.
+                        if (b.arm() != null && (face == b.arm() || face == b.arm().getOpposite())) continue;
+                        quads.add(quad(strandSprite, face, b, tint));
+                    }
+                }
+            }
+        }
+
+        // Tray or trunking round them.
+        List<CableLanes.Box> coverBoxes = cover == CableLanes.COVER_TRAY
+            ? CableLanes.tray(CableLanes.unionMask(key), CableLanes.ceiling(key))
+            : cover == CableLanes.COVER_TRUNKING ? CableLanes.trunking(CableLanes.unionMask(key)) : List.of();
+        if (!coverBoxes.isEmpty()) {
+            var atlas = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
+            for (CableLanes.Box b : coverBoxes) {
+                TextureAtlasSprite sprite = atlas.apply(COVER_TEXTURES[b.tex()]);
                 for (Direction face : Direction.values()) {
-                    // An arm's two ends are hidden: one inside the core, one against the next block.
-                    if (b.arm() != null && (face == b.arm() || face == b.arm().getOpposite())) continue;
-                    quads.add(quad(sprite, face, b, tint));
+                    // A trunking arm's inner end is inside the middle box; its outer end stays as an end cap.
+                    if (b.arm() != null && face == b.arm().getOpposite()) continue;
+                    quads.add(quad(sprite, face, b, -1));
                 }
             }
         }
@@ -124,6 +165,14 @@ public final class CableBakedModel implements IDynamicBakedModel {
 
     @Override
     public TextureAtlasSprite getParticleIcon() {
+        return original.getParticleIcon();
+    }
+
+    /** Breaking a disguised cable gives the disguise block's particles. */
+    @Override
+    public TextureAtlasSprite getParticleIcon(ModelData data) {
+        BlockState disguise = data.get(NetworkCableBlockEntity.DISGUISE);
+        if (disguise != null) return Minecraft.getInstance().getBlockRenderer().getBlockModel(disguise).getParticleIcon(ModelData.EMPTY);
         return original.getParticleIcon();
     }
 

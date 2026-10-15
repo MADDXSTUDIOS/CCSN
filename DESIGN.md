@@ -97,10 +97,20 @@ Rules:
 - A jack on a bundle uses one run: the first, or the one picked by sneak +
   right-clicking the jack with that colour's cable (plain right-click with a
   cable never touches the jack, so laying cable past it is safe).
-- **Later (disguise):** right-click with a full plain block (stone bricks,
-  planks, concrete...) and the cable looks and behaves like that block. Wrench
-  + sneak-right-click removes it; holding the wrench shows hidden runs.
-  - Full plain blocks only (no chests, machines, panes, slabs).
+- **Covers (v0.3.5)**, one per cable block, all inside the block's own 1x1:
+  - **Cable Tray** item: steel ladder tray round the runs (still visible),
+    following bends and junctions. Drop rods + strut when a solid ceiling is
+    directly above; enclosed riser for up/down.
+  - **Cable Trunking** item: closed white duct, runs hidden.
+  - **Disguise**: right-click with a plain full block (no block entity, solid
+    render, full collision: stone bricks, planks, logs, concrete...). The block
+    gets a `disguised` state so it's solid, blocks light and has full
+    collision; the model draws the disguise block's own model (its tints too).
+    Sneak + right-click places the block normally instead.
+  - **Network Wrench**: sneak + right-click takes the cover off and gives it
+    back; right-click shows runs + cover (or a jack's status).
+  - Breaking the cable drops its runs plus the cover.
+  - Later: holding the wrench shows hidden runs through walls.
 
 ### Wall Jack
 - Faceplate on a wall, floor or ceiling, fitted to the block behind it.
@@ -148,7 +158,7 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 | v0.2 | NAS drive bays, 3D drives, chipsets, bay GUI, hot-swap ✅ tested in-game (v0.2.1) |
 | v0.3.0 | Coloured network cable + Wall Jack ✅ tested in-game (v0.3.1: through-wall, side plugs, status) |
 | v0.3.2 | Bundling (up to 4 runs per block) ✅ tested in-game (two NASes on separate runs, drive swaps across them) |
-| v0.3.x | Disguise + wrench |
+| v0.3.5 | Covers: disguise, cable tray, trunking + wrench 🧪 |
 | v0.3.x | Network Switch (hub, ports, chaining) |
 | v0.3.x | Patch Panel, switch extras (VLANs, GUI, Lua) |
 | v0.4 | Server Rack and T1–T3 blades |
