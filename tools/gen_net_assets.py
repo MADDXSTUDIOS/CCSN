@@ -59,18 +59,27 @@ for x in range(16):
     for y in range(16): px(label, x, y, noise(grey(236), 2))
 label.save(f'{BT}/wall_jack_label.png')
 
-# Patch lead drawn from the jack socket to CC cable: grey like CC's own cable.
-lead = img()
+# Patch lead: the lead itself uses CC's own cable texture (computercraft:block/cable_side) so it
+# matches CC's grey cable exactly, resource packs included. Ours are just the RJ45 plug and boot.
+if os.path.exists(f'{BT}/patch_lead.png'): os.remove(f'{BT}/patch_lead.png')
+boot = img()                                   # moulded strain-relief boot, a shade darker than CC cable
 for x in range(16):
-    for y in range(16):
-        v = 150 if (x + y) % 5 == 0 else 172
-        px(lead, x, y, noise(grey(v), 3))
-lead.save(f'{BT}/patch_lead.png')
-boot = img()
-for x in range(16):
-    for y in range(16): px(boot, x, y, noise((118, 124, 132), 3))
-for x in range(16): px(boot, x, 0, (150, 156, 164))
+    for y in range(16): px(boot, x, y, noise((104, 108, 114), 3))
+for y in range(0, 16, 2):
+    for x in range(16): px(boot, x, y, noise((96, 100, 106), 2))   # grip ridges
 boot.save(f'{BT}/patch_lead_boot.png')
+# RJ45 plug: clear plastic body; gold contacts along the front of the top face (auto UV of the
+# top face lands on cols 5..10, rows 12..13), coloured wires showing through behind them.
+plug = img()
+for x in range(16):
+    for y in range(16): px(plug, x, y, noise((214, 224, 230), 3))
+WIRES = [(230, 150, 60), (200, 120, 40), (90, 170, 90), (60, 110, 200)]
+for i, x in enumerate(range(5, 11)):
+    px(plug, x, 13, (222, 186, 74) if i % 2 == 0 else (176, 142, 52))   # gold contacts
+    px(plug, x, 12, WIRES[i % 4])                                          # wires under the clear top
+    px(plug, x, 11, tuple(min(255, c + 30) for c in WIRES[i % 4]))
+for x in range(16): px(plug, x, 6, (190, 200, 206))                       # moulding line on the sides
+plug.save(f'{BT}/rj45_plug.png')
 
 # Cable item: a loose coil with a plug on the end, greyscale for tinting.
 coil = img()
@@ -136,14 +145,21 @@ jdump({'parent': 'minecraft:block/block', 'textures': JACK_TEX, 'elements': jack
 LEAD_ARM = {'front': ([6, 6, 0], [10, 10, 6]), 'west': ([0, 6, 6], [6, 10, 10]),
             'east': ([10, 6, 6], [16, 10, 10]), 'up': ([6, 10, 6], [10, 16, 10]),
             'down': ([6, 0, 6], [10, 6, 10])}
-LEAD_TEX = {'lead': 'ccsn:block/patch_lead', 'boot': 'ccsn:block/patch_lead_boot',
-            'particle': 'ccsn:block/patch_lead'}
+LEAD_TEX = {'lead': 'computercraft:block/cable_side', 'boot': 'ccsn:block/patch_lead_boot',
+            'plug': 'ccsn:block/rj45_plug', 'particle': 'computercraft:block/cable_side'}
 ALL = ['north', 'south', 'east', 'west', 'up', 'down']
+def cube(f, t, tex, skip=()):
+    return {'from': f, 'to': t, 'faces': {n: {'texture': tex} for n in ALL if n not in skip}}
 for rel, (f, t) in LEAD_ARM.items():
     jdump({'textures': LEAD_TEX, 'elements': [
-        {'from': [5.5, 5.5, 12], 'to': [10.5, 10.5, 14], 'faces': {n: {'texture': '#boot'} for n in ALL}},
-        {'from': [6, 6, 6], 'to': [10, 10, 12], 'faces': {n: {'texture': '#lead'} for n in ALL}},
-        {'from': f, 'to': t, 'faces': {n: {'texture': '#lead'} for n in ALL}},
+        # RJ45 plug pushed into the socket (plate front is z=14), latch tab underneath
+        cube([5.5, 6, 11], [10.5, 9.5, 14], '#plug', skip=('north',)),
+        cube([7, 5.25, 11.5], [9, 6, 13.5], '#plug', skip=('up',)),
+        # moulded boot behind the plug, then the lead back to the middle of the block
+        cube([5.75, 5.75, 9.5], [10.25, 10.25, 11], '#boot'),
+        {'from': [6, 6, 6], 'to': [10, 10, 9.5], 'faces': {
+            n: {'texture': '#lead', 'uv': [6, 6, 10, 10]} for n in ALL if n != 'south'}},
+        cube(f, t, '#lead'),
     ]}, f'{BM}/wall_jack_lead_{rel}.json')
 
 # Rotations as Minecraft applies them (x first, then y). North-frame side -> world side.

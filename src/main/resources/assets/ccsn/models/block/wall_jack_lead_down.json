@@ -1,20 +1,79 @@
 {
   "textures": {
-    "lead": "ccsn:block/patch_lead",
+    "lead": "computercraft:block/cable_side",
     "boot": "ccsn:block/patch_lead_boot",
-    "particle": "ccsn:block/patch_lead"
+    "plug": "ccsn:block/rj45_plug",
+    "particle": "computercraft:block/cable_side"
   },
   "elements": [
     {
       "from": [
         5.5,
-        5.5,
-        12
+        6,
+        11
       ],
       "to": [
         10.5,
-        10.5,
+        9.5,
         14
+      ],
+      "faces": {
+        "south": {
+          "texture": "#plug"
+        },
+        "east": {
+          "texture": "#plug"
+        },
+        "west": {
+          "texture": "#plug"
+        },
+        "up": {
+          "texture": "#plug"
+        },
+        "down": {
+          "texture": "#plug"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        5.25,
+        11.5
+      ],
+      "to": [
+        9,
+        6,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#plug"
+        },
+        "south": {
+          "texture": "#plug"
+        },
+        "east": {
+          "texture": "#plug"
+        },
+        "west": {
+          "texture": "#plug"
+        },
+        "down": {
+          "texture": "#plug"
+        }
+      }
+    },
+    {
+      "from": [
+        5.75,
+        5.75,
+        9.5
+      ],
+      "to": [
+        10.25,
+        10.25,
+        11
       ],
       "faces": {
         "north": {
@@ -46,26 +105,53 @@
       "to": [
         10,
         10,
-        12
+        9.5
       ],
       "faces": {
         "north": {
-          "texture": "#lead"
-        },
-        "south": {
-          "texture": "#lead"
+          "texture": "#lead",
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ]
         },
         "east": {
-          "texture": "#lead"
+          "texture": "#lead",
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ]
         },
         "west": {
-          "texture": "#lead"
+          "texture": "#lead",
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ]
         },
         "up": {
-          "texture": "#lead"
+          "texture": "#lead",
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ]
         },
         "down": {
-          "texture": "#lead"
+          "texture": "#lead",
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ]
         }
       }
     },
