@@ -8,9 +8,11 @@ switches, server racks and blades.
 
 ## Getting it
 
-Every push to `main` is built by GitHub Actions and published on the
-[Releases page](https://github.com/MADDXSTUDIOS/CCSN/releases) as a test build.
-Drop the jar in a NeoForge 1.21.1 instance alongside CC:Tweaked 1.120.x.
+Not publicly released yet. Work happens on the `dev` branch; every push there
+is built by GitHub Actions and published on the
+[Releases page](https://github.com/MADDXSTUDIOS/CCSN/releases) as a test build
+(marked pre-release). `main` holds the last tested version. Drop the jar in a
+NeoForge 1.21.1 instance alongside CC:Tweaked 1.120.x.
 
 ## NAS and drives
 

@@ -235,5 +235,12 @@ Done once before a public release, not every version:
 
 ## Builds
 
-Every push to `main` builds on GitHub Actions. The jar is published on the
-Releases page as a "Test build".
+- **`dev`**: all work goes here. Every push builds on GitHub Actions and the
+  jar is published on the Releases page as a pre-release "Test build N".
+- **`main`**: the last version tested in-game and signed off. `dev` is merged
+  in only when a version passes testing. Pushes are built to check them but
+  nothing is published.
+- **Releases**: tag a commit on `main` as `v<mod_version>` (e.g. `v0.4.0`) when
+  it's ready to go public; that builds and publishes a full release. The tag
+  must match `mod_version` in gradle.properties or the build fails.
+- Changes that only touch `.md` files don't trigger a build.
