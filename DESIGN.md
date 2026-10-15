@@ -201,6 +201,10 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
     it deliberate and consistent: slotted/perforated side rails on every tray
     piece (straights, bends, junctions, risers), evenly spaced, instead of
     accidental gaps.
+12. **More runs per block:** raise the limit from 4 to 6, as a server config
+    option (1-7). Lanes already give all 16 colours their own spot; the render
+    key needs the cover bits moved up (16 + 7x6 + 3 bits still fits a long).
+    Do item 1 (hops at turns) properly first, as more runs means more crossings.
 
 ## Release checklist
 
