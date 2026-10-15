@@ -4,7 +4,7 @@ Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage with
 hot-swap drives, office network cabling and wall jacks, and (coming) network
 switches, server racks and blades.
 
-**Status: v0.3.6 (test build).** Requires CC:Tweaked 1.120.x.
+**Status: v0.3.7 (test build).** Requires CC:Tweaked 1.120.x.
 
 ## Getting it
 
@@ -48,8 +48,10 @@ plain CC cable. Our cable is the structured cabling in the walls between them.
     stand on a floor, brackets (or clips, for risers) to a wall next to it,
     drop rods from a ceiling.
   - **Cable Trunking**: closed white duct, runs hidden. Sits flush against a
-    wall or floor next to it; ends are only capped where they're open to the
-    air, so it joins trays and other cable cleanly.
+    wall or floor next to it, and fills in the bend where it turns round the
+    corner of a wall. Ends are only capped where they're open to the air (or
+    where two lengths of a different shape meet), so it joins trays and other
+    cable cleanly.
   - **Disguise**: right-click a cable with a plain full block (bricks, planks,
     stone, concrete...) and it looks and acts like that block: solid, blocks
     light. Sneak + right-click to place the block next to the cable instead.

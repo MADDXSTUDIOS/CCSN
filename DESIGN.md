@@ -105,15 +105,18 @@ Rules:
 - **Covers (v0.3.5)**, one per cable block, all inside the block's own 1x1:
   - **Cable Tray** item: galvanised ladder tray round the runs (still
     visible), following bends and junctions. Real rungs across the tray, slotted
-    side rails (posts every 4 px, lined up block to block). Going up or down it
+    side rails (posts every 4 px, lined up block to block), deep enough (rails
+    to 12.5 px, v0.3.7) that every run sits inside it. Going up or down it
     becomes a slatted riser, continuous between blocks, open on the sides runs
     leave by. Supports (v0.3.6): a strut on two feet on a floor (a riser stands
     on its corner posts), cantilever brackets to a wall beside it (clips for
     risers), or a strut on drop rods from a ceiling.
   - **Cable Trunking** item: closed white duct, runs hidden. Widened to sit
-    flush against any wall, floor or ceiling next to it. An end is only capped
-    where it's open to the air; where it meets more cable it's left open (drawn
-    hollow, runs visible inside).
+    flush against any wall, floor or ceiling next to it; where it turns round
+    the outside corner of a wall the bend is filled in to match (v0.3.7). An
+    end is only capped where it's open to the air, or where it meets trunking
+    of a different shape (say a run carrying on past the end of a wall); where
+    it meets more cable it's left open (drawn hollow, runs visible inside).
   - **Disguise**: right-click with a plain full block (no block entity, solid
     render, full collision: stone bricks, planks, logs, concrete...). The block
     gets a `disguised` state so it's solid, blocks light and has full
@@ -171,7 +174,8 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 | v0.3.0 | Coloured network cable + Wall Jack ✅ tested in-game (v0.3.1: through-wall, side plugs, status) |
 | v0.3.2 | Bundling (up to 4 runs per block) ✅ tested in-game (two NASes on separate runs, drive swaps across them) |
 | v0.3.5 | Covers: disguise, cable tray, trunking + wrench ✅ tested in-game (fix list below came out of it) |
-| v0.3.6 | Polish: fix list 1-6 and 8-12 (layered strands, ladder tray, risers, supports, trunking ends, 6-8 runs per block) 🧪 |
+| v0.3.6 | Polish: fix list 1-6 and 8-12 (layered strands, ladder tray, risers, supports, trunking ends, 6-8 runs per block) ✅ tested in-game |
+| v0.3.7 | Trunking fills outside corners and caps mismatched joins; deeper tray so runs sit inside the rails 🧪 |
 | v0.3.x | Network Switch (hub, ports, chaining) |
 | v0.3.x | Patch Panel, switch extras (VLANs, GUI, Lua) |
 | v0.4 | Server Rack and T1–T3 blades |

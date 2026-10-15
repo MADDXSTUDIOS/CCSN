@@ -49,8 +49,11 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
     /** Tray or trunking (or none). A disguise is tracked separately. */
     private int cover = CableLanes.COVER_NONE;
     private @Nullable BlockState disguise;
-    /** Sides with a solid face next to us (walls, floor, ceiling), and sides with more cable. Server works them out, synced. */
-    private int solidSides, cableSides;
+    /**
+     * Worked out on the server, synced: sides with a solid face next to us (walls, floor, ceiling),
+     * sides trunking is left open (joins more cable), and sides trunking widens out to.
+     */
+    private int solidSides, openSides, widenSides;
 
     public NetworkCableBlockEntity(BlockPos pos, BlockState state) {
         super(ModRegistry.NETWORK_CABLE_BLOCK_ENTITY.get(), pos, state);
@@ -83,7 +86,7 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
 
     public CableRender render() {
         int coverType = disguise != null ? CableLanes.COVER_DISGUISE : cover;
-        return CableRender.of(colourBits, masks, solidSides, cableSides, coverType);
+        return CableRender.of(colourBits, masks, solidSides, openSides, widenSides, coverType);
     }
 
     // ---- Covers ----
@@ -148,6 +151,22 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         if (level == null || level.isClientSide) return;
         BlockState state = getBlockState();
         level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        refreshNeighbours(); // whether their trunking joins ours depends on our cover
+    }
+
+    private boolean isTrunking() {
+        return cover == CableLanes.COVER_TRUNKING && disguise == null;
+    }
+
+    /** Have the cable blocks round us look again (after something they look at here has changed). */
+    private void refreshNeighbours() {
+        if (level == null || level.isClientSide) return;
+        for (Direction dir : Direction.values()) {
+            BlockPos other = worldPosition.relative(dir);
+            if (level.isLoaded(other) && level.getBlockEntity(other) instanceof NetworkCableBlockEntity cable) {
+                cable.scheduleRefresh();
+            }
+        }
     }
 
     /** Add a run. Returns false if it's already here or the block is full. */
@@ -226,31 +245,62 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
             }
         }
 
-        // What's round us, for the tray's supports and the trunking's ends.
-        int solidNow = 0, cablesNow = 0;
+        // What's round us, for the tray's supports and the trunking's shape and ends.
+        int union = 0;
+        for (DyeColor colour : colours()) union |= masks[colour.ordinal()];
+        int solidNow = 0;
+        long diagonal = 0;
         for (Direction dir : Direction.values()) {
             BlockPos other = worldPosition.relative(dir);
             int bit = 1 << dir.ordinal();
             if (!level.isLoaded(other)) {
                 solidNow |= solidSides & bit;
-                cablesNow |= cableSides & bit;
                 continue;
             }
-            BlockState state = level.getBlockState(other);
-            if (state.isFaceSturdy(level, other, dir.getOpposite())) solidNow |= bit;
-            if (state.getBlock() instanceof NetworkCableBlock) cablesNow |= bit;
+            if (sturdy(level, other, dir.getOpposite())) solidNow |= bit;
+            if ((union & bit) == 0) continue;
+            // Round the corner from each arm: is there a wall the next trunking along is widened to?
+            for (Direction d : Direction.values()) {
+                if (d.getAxis() == dir.getAxis()) continue;
+                BlockPos corner = other.relative(d);
+                if (level.isLoaded(corner) && sturdy(level, corner, d.getOpposite())) {
+                    diagonal |= 1L << (dir.ordinal() * 6 + d.ordinal());
+                }
+            }
         }
-        if (solidNow != solidSides || cablesNow != cableSides) {
+        int widenNow = CableLanes.widen(union, solidNow, diagonal);
+        int openNow = 0;
+        for (Direction dir : Direction.values()) {
+            BlockPos other = worldPosition.relative(dir);
+            int bit = 1 << dir.ordinal();
+            if (!level.isLoaded(other)) {
+                openNow |= openSides & bit;
+                continue;
+            }
+            // Open into more cable; but where two lengths of trunking meet with different shapes, cap both.
+            if (level.getBlockEntity(other) instanceof NetworkCableBlockEntity cable
+                && (!cable.isTrunking() || CableLanes.profilesMatch(dir, widenNow, cable.widenSides))) {
+                openNow |= bit;
+            }
+        }
+        boolean widened = widenNow != widenSides;
+        if (solidNow != solidSides || openNow != openSides || widened) {
             solidSides = solidNow;
-            cableSides = cablesNow;
+            openSides = openNow;
+            widenSides = widenNow;
             changed = true;
         }
+        if (widened) refreshNeighbours();
 
         if (changed) {
             setChanged();
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
+    }
+
+    private static boolean sturdy(Level level, BlockPos pos, Direction face) {
+        return level.getBlockState(pos).isFaceSturdy(level, pos, face);
     }
 
     private @Nullable WiredNode findTarget(Level level, DyeColor colour, Direction dir, BlockPos other) {
@@ -282,7 +332,8 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         tag.putIntArray("Masks", masks);
         tag.putInt("Cover", cover);
         tag.putInt("Solid", solidSides);
-        tag.putInt("Cables", cableSides);
+        tag.putInt("Open", openSides);
+        tag.putInt("Widen", widenSides);
         if (disguise != null) tag.put("Disguise", NbtUtils.writeBlockState(disguise));
     }
 
@@ -295,7 +346,8 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
         cover = tag.getInt("Cover") & 3;
         if (cover == CableLanes.COVER_DISGUISE) cover = CableLanes.COVER_NONE;
         solidSides = tag.getInt("Solid") & 0x3F;
-        cableSides = tag.getInt("Cables") & 0x3F;
+        openSides = tag.getInt("Open") & 0x3F;
+        widenSides = tag.getInt("Widen") & 0x3F;
         disguise = tag.contains("Disguise")
             ? NbtUtils.readBlockState(registries.lookupOrThrow(Registries.BLOCK), tag.getCompound("Disguise"))
             : null;

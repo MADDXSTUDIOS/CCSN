@@ -13,13 +13,15 @@ import java.util.List;
  * @param colours bit per dye ordinal: which runs are here
  * @param masks   6 side bits per run present, packed in dye-ordinal order (up to {@link CableLanes#ABSOLUTE_MAX_RUNS})
  * @param solid   sides where the neighbour has a solid face towards us (wall, floor, ceiling)
- * @param cables  sides where the neighbour is another cable block
+ * @param open    sides where trunking is left open: more cable there, and if that's trunking too, the same
+ *                shape at the join (see {@link CableLanes#profilesMatch})
+ * @param widen   sides trunking is widened out to (see {@link CableLanes#widen})
  * @param cover   {@link CableLanes#COVER_NONE}, tray, trunking or disguise
  */
-public record CableRender(int colours, long masks, int solid, int cables, int cover) {
-    public static final CableRender EMPTY = new CableRender(0, 0, 0, 0, CableLanes.COVER_NONE);
+public record CableRender(int colours, long masks, int solid, int open, int widen, int cover) {
+    public static final CableRender EMPTY = new CableRender(0, 0, 0, 0, 0, CableLanes.COVER_NONE);
 
-    public static CableRender of(int colourBits, int[] masksByOrdinal, int solid, int cables, int cover) {
+    public static CableRender of(int colourBits, int[] masksByOrdinal, int solid, int open, int widen, int cover) {
         long packed = 0;
         int slot = 0;
         for (int c = 0; c < 16 && slot < CableLanes.ABSOLUTE_MAX_RUNS; c++) {
@@ -27,7 +29,7 @@ public record CableRender(int colours, long masks, int solid, int cables, int co
             packed |= (long) (masksByOrdinal[c] & 0x3F) << (6 * slot);
             slot++;
         }
-        return new CableRender(colourBits & 0xFFFF, packed, solid & 0x3F, cables & 0x3F, cover);
+        return new CableRender(colourBits & 0xFFFF, packed, solid & 0x3F, open & 0x3F, widen & 0x3F, cover);
     }
 
     public boolean isEmpty() {
@@ -38,8 +40,8 @@ public record CableRender(int colours, long masks, int solid, int cables, int co
     public CableRender normalised() {
         return switch (cover) {
             case CableLanes.COVER_TRUNKING -> this;
-            case CableLanes.COVER_TRAY -> cables == 0 ? this : new CableRender(colours, masks, solid, 0, cover);
-            default -> solid == 0 && cables == 0 ? this : new CableRender(colours, masks, 0, 0, cover);
+            case CableLanes.COVER_TRAY -> open == 0 && widen == 0 ? this : new CableRender(colours, masks, solid, 0, 0, cover);
+            default -> solid == 0 && open == 0 && widen == 0 ? this : new CableRender(colours, masks, 0, 0, 0, cover);
         };
     }
 
@@ -71,9 +73,5 @@ public record CableRender(int colours, long masks, int solid, int cables, int co
 
     public boolean solid(Direction dir) {
         return (solid & (1 << dir.ordinal())) != 0;
-    }
-
-    public boolean cable(Direction dir) {
-        return (cables & (1 << dir.ordinal())) != 0;
     }
 }

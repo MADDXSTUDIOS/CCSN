@@ -70,7 +70,7 @@ public final class CableBakedModel implements IDynamicBakedModel {
         List<BakedQuad> quads = new ArrayList<>();
 
         // The runs. Inside trunking they're only seen through an open end, so skip them if there's none.
-        boolean hidden = render.cover() == CableLanes.COVER_TRUNKING && (render.union() & render.cables()) == 0;
+        boolean hidden = render.cover() == CableLanes.COVER_TRUNKING && (render.union() & render.open()) == 0;
         if (!hidden) {
             TextureAtlasSprite strandSprite = original.getParticleIcon();
             for (DyeColor colour : render.present()) {

@@ -122,7 +122,7 @@ public final class CableLanes {
 
     /** Tray footprint (outer) and its parts' heights. Rails and walls are 1 px steel. */
     private static final float T0 = 3, T1 = 13;
-    private static final float RUNG_BOTTOM = 3, RUNG_TOP = 4, STRINGER_TOP = 4.5f, LIP_BOTTOM = 8.5f, RAIL_TOP = 9.5f;
+    private static final float RUNG_BOTTOM = 3, RUNG_TOP = 4, STRINGER_TOP = 4.5f, LIP_BOTTOM = 11.5f, RAIL_TOP = 12.5f;
     /** Rungs, rail posts and riser slats: 2 px every 4 px, the same in every block so they line up. */
     private static final float[] BEAT = { 1, 5, 9, 13 };
     private static final Direction[] HORIZONTAL = { Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST };
@@ -355,17 +355,17 @@ public final class CableLanes {
     private static final float K0 = 3.5f, K1 = 12.5f;
 
     /**
-     * Closed trunking round the runs: a duct out to each side a run leaves by. Next to a wall, floor or
-     * ceiling the whole duct is widened to meet it, so it sits flush with no gap. A face on the edge of
-     * the block is only drawn where it's open to the air: against a wall it's hidden, and against more
-     * cable it's left open (drawn hollow, so you see the runs going in).
+     * Closed trunking round the runs: a duct out to each side a run leaves by. It's widened out to the
+     * sides in {@code widen} (see {@link #widen}) so it sits flush against walls, floors and ceilings.
+     * A face on the edge of the block is only drawn where it's open to the air: against a wall it's
+     * hidden, and where it joins more cable ({@code open}) it's left open, drawn hollow so you see the
+     * runs going in.
      */
-    public static List<Box> trunking(int union, int solid, int cables) {
-        // The duct's cross-section on each axis, widened out to any solid side.
-        float x1 = has(solid, Direction.WEST) ? 0 : K0, x2 = has(solid, Direction.EAST) ? 16 : K1;
-        float y1 = has(solid, Direction.DOWN) ? 0 : K0, y2 = has(solid, Direction.UP) ? 16 : K1;
-        float z1 = has(solid, Direction.NORTH) ? 0 : K0, z2 = has(solid, Direction.SOUTH) ? 16 : K1;
-        int hidden = solid | cables; // block edges not to draw
+    public static List<Box> trunking(int union, int solid, int open, int widen) {
+        float x1 = has(widen, Direction.WEST) ? 0 : K0, x2 = has(widen, Direction.EAST) ? 16 : K1;
+        float y1 = has(widen, Direction.DOWN) ? 0 : K0, y2 = has(widen, Direction.UP) ? 16 : K1;
+        float z1 = has(widen, Direction.NORTH) ? 0 : K0, z2 = has(widen, Direction.SOUTH) ? 16 : K1;
+        int hidden = solid | open; // block edges not to draw
         List<Box> out = new ArrayList<>();
 
         int arms = 0;
@@ -389,6 +389,34 @@ public final class CableLanes {
         return out;
     }
 
+    /**
+     * Which sides trunking widens out to: every solid side, so it sits flush; plus, where it turns
+     * round the outside corner of a wall, the corner the two widened neighbours meet in, so the bend
+     * is filled in rather than leaving a hole. {@code diagonal} has bit {@code a * 6 + d} set when the
+     * block one step along arm {@code a} then one along {@code d} is solid on its {@code d.opposite} face
+     * (only perpendicular pairs matter).
+     */
+    public static int widen(int union, int solid, long diagonal) {
+        int widen = solid;
+        for (Direction d : Direction.values()) {
+            if (!has(union, d)) continue;
+            for (Direction a : Direction.values()) {
+                if (a == d || a == d.getOpposite() || !has(union, a)) continue;
+                if (((diagonal >>> (a.ordinal() * 6 + d.ordinal())) & 1) != 0) {
+                    widen |= bit(d);
+                    break;
+                }
+            }
+        }
+        return widen;
+    }
+
+    /** Whether two trunking blocks joined on {@code joint} have the same shape where they meet. */
+    public static boolean profilesMatch(Direction joint, int widenA, int widenB) {
+        int across = ALL_FACES & ~bit(joint) & ~bit(joint.getOpposite());
+        return (widenA & across) == (widenB & across);
+    }
+
     /** A trunking box, drawing every face except those on a block edge listed in {@code hidden}. */
     private static Box duct(float x1, float y1, float z1, float x2, float y2, float z2, int hidden) {
         int faces = ALL_FACES;
@@ -407,7 +435,7 @@ public final class CableLanes {
     public static List<Box> cover(CableRender r) {
         return switch (r.cover()) {
             case COVER_TRAY -> tray(r.union(), r.solid());
-            case COVER_TRUNKING -> trunking(r.union(), r.solid(), r.cables());
+            case COVER_TRUNKING -> trunking(r.union(), r.solid(), r.open(), r.widen());
             default -> List.of();
         };
     }
@@ -420,7 +448,7 @@ public final class CableLanes {
             List<Box> boxes = new ArrayList<>();
             for (DyeColor colour : r.present()) boxes.addAll(strand(colour, r.mask(colour), 1.5f));
             if (r.cover() == COVER_TRAY) boxes.addAll(trayHull(r.union()));
-            else if (r.cover() == COVER_TRUNKING) boxes.addAll(trunking(r.union(), r.solid(), r.cables()));
+            else if (r.cover() == COVER_TRUNKING) boxes.addAll(trunking(r.union(), r.solid(), r.open(), r.widen()));
             VoxelShape shape = Shapes.empty();
             for (Box b : boxes) {
                 shape = Shapes.or(shape, Shapes.box(

@@ -22,22 +22,47 @@ public class Dump {
                 case "J" -> jacks.add(p);
             }
         }
+        // Same steps as NetworkCableBlockEntity.refreshConnections: masks and solid sides, then widen, then open.
+        Map<P, int[]> masksAt = new HashMap<>();
+        Map<P, Integer> solidAt = new HashMap<>(), widenAt = new HashMap<>();
         for (var en : cables.entrySet()) {
             P p = en.getKey();
-            int bits = en.getValue()[0], cover = en.getValue()[1];
+            int bits = en.getValue()[0];
             int[] masks = new int[16];
-            int solid = 0, cab = 0;
+            int solid = 0, union = 0;
+            long diagonal = 0;
             for (Direction d : Direction.values()) {
                 P o = p.rel(d);
                 if (solids.contains(o)) solid |= 1 << d.ordinal();
-                if (cables.containsKey(o)) cab |= 1 << d.ordinal();
                 for (int c = 0; c < 16; c++) {
                     if ((bits & (1 << c)) == 0) continue;
                     boolean link = (cables.containsKey(o) && (cables.get(o)[0] & (1 << c)) != 0) || jacks.contains(o);
                     if (link) masks[c] |= 1 << d.ordinal();
                 }
             }
-            CableRender r = CableRender.of(bits, masks, solid, cab, cover);
+            for (int c = 0; c < 16; c++) union |= masks[c];
+            for (Direction a : Direction.values()) {
+                if ((union & (1 << a.ordinal())) == 0) continue;
+                for (Direction d : Direction.values()) {
+                    if (d == a || d == a.getOpposite()) continue;
+                    if (solids.contains(p.rel(a).rel(d))) diagonal |= 1L << (a.ordinal() * 6 + d.ordinal());
+                }
+            }
+            masksAt.put(p, masks);
+            solidAt.put(p, solid);
+            widenAt.put(p, CableLanes.widen(union, solid, diagonal));
+        }
+        for (var en : cables.entrySet()) {
+            P p = en.getKey();
+            int bits = en.getValue()[0], cover = en.getValue()[1];
+            int open = 0;
+            for (Direction d : Direction.values()) {
+                P o = p.rel(d);
+                if (!cables.containsKey(o)) continue;
+                boolean trunk = cables.get(o)[1] == CableLanes.COVER_TRUNKING;
+                if (!trunk || CableLanes.profilesMatch(d, widenAt.get(p), widenAt.get(o))) open |= 1 << d.ordinal();
+            }
+            CableRender r = CableRender.of(bits, masksAt.get(p), solidAt.get(p), open, widenAt.get(p), cover);
             CableLanes.shape(r);
             for (DyeColor col : r.present()) {
                 for (CableLanes.Box b : CableLanes.strand(col, r.mask(col), 0)) out(p, b, "strand" + col.ordinal());
