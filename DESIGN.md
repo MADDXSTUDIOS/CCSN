@@ -90,12 +90,13 @@ Rules:
 - 16 dye colours, one item per colour. Same colour joins same colour;
   different colours never join.
 - **Bundling (v0.3.2):** up to 4 runs in ONE block space. Right-click a cable
-  with a new colour to add it. Each colour has a fixed lane (2 px strand at a
+  (or the block it sits on) with a new colour to add it. Each colour has a fixed lane (2 px strand at a
   point from a 4x4 Latin square, so no two colours overlap along any axis and
   runs line up block to block). Data lives in the block entity; a dynamic
   model draws it. Breaking drops one item per run.
-- A jack on a bundle uses one run: the first, or the one picked by
-  right-clicking the jack with that colour's cable.
+- A jack on a bundle uses one run: the first, or the one picked by sneak +
+  right-clicking the jack with that colour's cable (plain right-click with a
+  cable never touches the jack, so laying cable past it is safe).
 - **Later (disguise):** right-click with a full plain block (stone bricks,
   planks, concrete...) and the cable looks and behaves like that block. Wrench
   + sneak-right-click removes it; holding the wrench shows hidden runs.

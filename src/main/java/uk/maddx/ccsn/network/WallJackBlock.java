@@ -41,8 +41,8 @@ import java.util.Map;
  * A data faceplate for walls, floors and ceilings.
  * <ul>
  *   <li>Back: the network cable directly behind it, or behind a one-block wall. If the cable
- *   carries several runs, the jack uses one: the first, or the one picked by right-clicking
- *   the jack with a cable of that colour.</li>
+ *   carries several runs, the jack uses one: the first, or the one picked by sneak +
+ *   right-clicking the jack with a cable of that colour.</li>
  *   <li>Front and four sides: CC grey cable or a CC wired modem. A grey patch lead
  *   is drawn from the socket to each one.</li>
  * </ul>
@@ -220,18 +220,13 @@ public final class WallJackBlock extends BaseEntityBlock {
     // ---- Status check ----
 
     /**
-     * Holding network cable: switch the jack to that colour's run. Holding anything else: let it be
-     * placed (CC cable into the front, say). Empty hand: status check.
+     * Holding anything: let it be used or placed as normal (CC cable into the front, more network
+     * cable...). Switching runs is sneak + right-click with a cable, handled by the cable item.
+     * Empty hand: status check.
      */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
-        if (stack.getItem() instanceof NetworkCableItem cable) {
-            if (!level.isClientSide && level.getBlockEntity(pos) instanceof WallJackBlockEntity jack) {
-                jack.chooseRun(cable.colour(), player);
-            }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
-        }
         return stack.isEmpty()
             ? ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
             : ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;

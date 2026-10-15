@@ -190,7 +190,7 @@ lang.update({
     'chat.ccsn.wall_jack.side.north': 'north side', 'chat.ccsn.wall_jack.side.south': 'south side',
     'chat.ccsn.wall_jack.side.east': 'east side', 'chat.ccsn.wall_jack.side.west': 'west side',
     'chat.ccsn.wall_jack.side.up': 'top', 'chat.ccsn.wall_jack.side.down': 'bottom',
-    'chat.ccsn.wall_jack.other_runs': 'Other runs here: %s (right-click the jack with a cable to switch)',
+    'chat.ccsn.wall_jack.other_runs': 'Other runs here: %s (sneak + right-click the jack with a cable to switch)',
     'chat.ccsn.wall_jack.switched': 'Jack switched to the %s run',
     'chat.ccsn.wall_jack.no_such_run': 'There is no %s run behind this jack',
     'chat.ccsn.cable.full': 'This cable already carries %s runs',
