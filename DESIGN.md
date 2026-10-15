@@ -175,12 +175,15 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
    y 3-4 where the floor is skipped). Make riser walls continuous.
 3. **Runs poke through riser walls** where a horizontal run leaves a vertical
    riser. Riser walls need an opening on sides with a horizontal arm.
-4. **Jacks on trunking/tray look embedded** in a stub of cover that reaches out
-   to the jack. Cover arms shouldn't follow jack connections; the jack should
-   sit flat on the trunking face like an outlet on dado trunking (maybe a slim
-   back box).
+4. **Trays and risers float away from the wall:** they sit in the middle of
+   the block, leaving a gap to the wall they run along. Snap the cover (and
+   the runs inside it) against an adjacent solid wall/ceiling. (Jacks sitting
+   in a stub of trunking/tray is fine, keep that.)
 5. **RJ45 plug top too rainbow:** tone the wire colours down so it reads as a
    clear plug with gold contacts.
+8. **Trunking end caps show closed** where the trunking butts up against
+   another block or a different cover (e.g. a tray riser). Only cap an end
+   that's open to the air.
 6. **Tray steel texture reads as stone:** make it look like galvanised sheet
    steel (smoother, fewer speckles, edge highlights).
 7. (Feature still to do) holding the wrench shows hidden runs through walls.
