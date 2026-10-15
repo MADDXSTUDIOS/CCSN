@@ -165,6 +165,26 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 | v0.5 | Router, Wireless Access Point, Print Server, cable trays and conduit |
 | Later | Fibre, badge reader, chunk-loading racks |
 
+## Fix list (cosmetic, from v0.3.5 testing)
+
+1. **Runs cut through each other at turns.** Fixed lanes stop overlap when runs
+   are parallel, but two colours at the same height (e.g. yellow and light
+   grey) cross where one turns. Fix: the turning run hops over the other
+   inside the block; block-edge positions stay the same so joins still line up.
+2. **Tray riser seam:** stacked vertical riser blocks show a gap (walls stop at
+   y 3-4 where the floor is skipped). Make riser walls continuous.
+3. **Runs poke through riser walls** where a horizontal run leaves a vertical
+   riser. Riser walls need an opening on sides with a horizontal arm.
+4. **Jacks on trunking/tray look embedded** in a stub of cover that reaches out
+   to the jack. Cover arms shouldn't follow jack connections; the jack should
+   sit flat on the trunking face like an outlet on dado trunking (maybe a slim
+   back box).
+5. **RJ45 plug top too rainbow:** tone the wire colours down so it reads as a
+   clear plug with gold contacts.
+6. **Tray steel texture reads as stone:** make it look like galvanised sheet
+   steel (smoother, fewer speckles, edge highlights).
+7. (Feature still to do) holding the wrench shows hidden runs through walls.
+
 ## Release checklist
 
 Done once before a public release, not every version:
