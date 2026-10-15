@@ -1,8 +1,15 @@
 name: Build
 
+# dev:      every push builds and publishes a test build (pre-release) on the Releases page.
+# main:     the last tested, signed-off version. Pushes are built to check them, nothing is published.
+# v* tags:  a real release. Tag a commit on main (e.g. v0.4.0, matching mod_version) when it's
+#           ready to go public; this builds it and publishes it as a full release.
+
 on:
   push:
-    branches: [ main ]
+    branches: [ dev, main ]
+    tags: [ 'v*' ]
+    paths-ignore: [ '**.md' ]
   workflow_dispatch:
 
 permissions:
@@ -23,6 +30,18 @@ jobs:
         with:
           gradle-version: '8.14'
 
+      - name: Read mod version
+        id: version
+        run: echo "mod_version=$(grep '^mod_version=' gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
+      - name: Tag must match mod_version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "v${{ steps.version.outputs.mod_version }}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} doesn't match mod_version ${{ steps.version.outputs.mod_version }}" >&2
+            exit 1
+          fi
+
       - name: Build mod jar
         run: gradle build --stacktrace
 
@@ -33,9 +52,19 @@ jobs:
           path: build/libs/*.jar
 
       - name: Publish test build (Releases page)
+        if: github.ref == 'refs/heads/dev'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Test build ${{ github.run_number }}
+          name: Test build ${{ github.run_number }} (${{ steps.version.outputs.mod_version }}, dev)
+          target_commitish: ${{ github.sha }}
           prerelease: true
+          files: build/libs/*.jar
+
+      - name: Publish release (Releases page)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: CC: Servers & Networking ${{ steps.version.outputs.mod_version }}
+          prerelease: false
           files: build/libs/*.jar
