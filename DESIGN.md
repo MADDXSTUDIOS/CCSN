@@ -187,6 +187,9 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 6. **Tray steel texture reads as stone:** make it look like galvanised sheet
    steel (smoother, fewer speckles, edge highlights).
 7. (Feature still to do) holding the wrench shows hidden runs through walls.
+9. **Open ladder tray floor:** the dark stripes on the tray floor are painted
+   on. Make the floor real rungs (separate 2 px bars with actual gaps) so you
+   can see the cables through it from below.
 
 ## Release checklist
 
