@@ -145,8 +145,8 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 |---|---|
 | v0.1 | NAS ✅ tested in-game (v0.1.3) |
 | v0.2 | NAS drive bays, 3D drives, chipsets, bay GUI, hot-swap ✅ tested in-game (v0.2.1) |
-| v0.3.0 | Coloured network cable + Wall Jack 🧪 (v0.3.1: through-wall, side plugs, status) |
-| v0.3.2 | Bundling (up to 4 runs per block) 🧪 |
+| v0.3.0 | Coloured network cable + Wall Jack ✅ tested in-game (v0.3.1: through-wall, side plugs, status) |
+| v0.3.2 | Bundling (up to 4 runs per block) ✅ tested in-game (two NASes on separate runs, drive swaps across them) |
 | v0.3.x | Disguise + wrench |
 | v0.3.x | Network Switch (hub, ports, chaining) |
 | v0.3.x | Patch Panel, switch extras (VLANs, GUI, Lua) |
