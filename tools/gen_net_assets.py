@@ -1,4 +1,4 @@
-"""Generates the v0.3 networking assets: network cable, wall jack.
+"""Generates the v0.3 networking assets: network cable, wall jack, covers, network switch.
 Textures, models, blockstates, loot tables and English names.
 Run from the repo root: python3 tools/gen_net_assets.py"""
 import json, os, random
@@ -106,6 +106,46 @@ for x in range(16):
     for y in range(16): px(trunk, x, y, noise((228, 230, 226), 2))
 for x in range(16): px(trunk, x, 3, (196, 198, 194)); px(trunk, x, 12, (196, 198, 194))
 trunk.save(f'{BT}/cable_trunking.png')
+
+# ---- Network switch ----
+# Front, as you look at it: a 4 x 4 grid of ports. Each port is 2 x 2: the top row is its two
+# lights (link on the left, activity on the right; drawn lit by SwitchRenderer), the bottom row is
+# the socket. Ports run 1-16 left to right, top to bottom (white to black). Keep in step with
+# SwitchPorts.ledColumn/ledRow.
+CHASSIS = (54, 56, 62)
+sw_front = img()
+for x in range(16):
+    for y in range(16): px(sw_front, x, y, noise(CHASSIS, 2))
+for x in range(16): px(sw_front, x, 0, (64, 66, 72)); px(sw_front, x, 15, (42, 44, 50))   # bezel
+for y in range(16): px(sw_front, 0, y, (60, 62, 68)); px(sw_front, 15, y, (46, 48, 54))
+for port in range(16):
+    c0, r0 = 1 + 4 * (port % 4), 1 + 4 * (port // 4)
+    px(sw_front, c0, r0, (34, 44, 36))            # link light, off
+    px(sw_front, c0 + 1, r0, (50, 42, 30))        # activity light, off
+    px(sw_front, c0, r0 + 1, (14, 14, 18)); px(sw_front, c0 + 1, r0 + 1, (14, 14, 18))   # socket
+    px(sw_front, c0, r0 + 2, (66, 68, 74)); px(sw_front, c0 + 1, r0 + 2, (66, 68, 74))   # lip under it
+sw_front.save(f'{BT}/switch_front.png')
+SW_SIDE = (70, 72, 78)
+sw_side = img()
+for x in range(16):
+    for y in range(16): px(sw_side, x, y, noise(SW_SIDE, 2))
+for y in range(5, 11, 2):                          # cooling vents
+    for x in range(3, 13): px(sw_side, x, y, (36, 38, 42))
+sw_side.save(f'{BT}/switch_side.png')
+sw_top = img()
+for x in range(16):
+    for y in range(16): px(sw_top, x, y, noise((76, 78, 84), 2))
+for x in range(16): px(sw_top, x, 0, (86, 88, 94)); px(sw_top, x, 15, (62, 64, 70))
+sw_top.save(f'{BT}/switch_top.png')
+sw_back = img()
+for x in range(16):
+    for y in range(16): px(sw_back, x, y, noise((64, 66, 72), 2))
+rect(sw_back, 2, 9, 5, 12, (20, 20, 24)); rect(sw_back, 3, 10, 4, 11, (40, 40, 44))      # power inlet
+rect(sw_back, 9, 3, 13, 5, (226, 226, 220)); rect(sw_back, 10, 4, 12, 4, (150, 150, 146))  # rating label
+for y in range(8, 14, 2):
+    for x in range(8, 14): px(sw_back, x, y, (36, 38, 42))  # fan grille
+sw_back.save(f'{BT}/switch_back.png')
+img(16, 16, (255, 255, 255)).save(f'{BT}/switch_led.png')  # lights are tinted in code
 
 # Item icons
 ti = img()                                            # a short length of tray side-on: slotted rail
@@ -232,6 +272,17 @@ for facing, r in ROT.items():
                       'apply': {'model': f'ccsn:block/wall_jack_lead_{rel}', **r}})
 jdump({'multipart': parts}, f'{BS}/wall_jack.json')
 
+# Network switch: a plain cube, port panel on the north face, turned by facing.
+SW_TEX = {'front': 'ccsn:block/switch_front', 'side': 'ccsn:block/switch_side', 'back': 'ccsn:block/switch_back',
+          'top': 'ccsn:block/switch_top', 'particle': 'ccsn:block/switch_side'}
+SW_FACE = {'north': '#front', 'south': '#back', 'east': '#side', 'west': '#side', 'up': '#top', 'down': '#top'}
+jdump({'parent': 'minecraft:block/block', 'textures': SW_TEX, 'elements': [{
+    'from': [0, 0, 0], 'to': [16, 16, 16],
+    'faces': {n: {'texture': t, 'cullface': n} for n, t in SW_FACE.items()}}]}, f'{BM}/network_switch.json')
+jdump({'variants': {f'facing={f}': {'model': 'ccsn:block/network_switch', **ROT[f]}
+                    for f in ('north', 'east', 'south', 'west')}}, f'{BS}/network_switch.json')
+jdump({'parent': 'ccsn:block/network_switch'}, f'{IM}/network_switch.json')
+
 # ================= loot =================
 # Cable drops are worked out in code (one cable item per run), so no loot table.
 if os.path.exists(f'{LOOT}/network_cable.json'): os.remove(f'{LOOT}/network_cable.json')
@@ -239,6 +290,10 @@ jdump({'type': 'minecraft:block', 'pools': [{
     'rolls': 1, 'conditions': [{'condition': 'minecraft:survives_explosion'}],
     'entries': [{'type': 'minecraft:item', 'name': 'ccsn:wall_jack'}]}]},
     f'{LOOT}/wall_jack.json')
+jdump({'type': 'minecraft:block', 'pools': [{
+    'rolls': 1, 'conditions': [{'condition': 'minecraft:survives_explosion'}],
+    'entries': [{'type': 'minecraft:item', 'name': 'ccsn:network_switch'}]}]},
+    f'{LOOT}/network_switch.json')
 
 # ================= names =================
 lang_path = f'{ROOT}/lang/en_us.json'
@@ -270,6 +325,12 @@ lang.update({
     'item.ccsn.cable_tray': 'Cable Tray',
     'item.ccsn.cable_trunking': 'Cable Trunking',
     'item.ccsn.wrench': 'Network Wrench',
+    'block.ccsn.network_switch': 'Network Switch',
+    'chat.ccsn.switch.title': 'Network Switch',
+    'chat.ccsn.switch.port': '%s %s',
+    'chat.ccsn.switch.ports': 'Ports in use (%s of %s): %s',
+    'chat.ccsn.switch.no_ports': 'No runs plugged in. Run network cable into any side but the front.',
+    'chat.ccsn.switch.chained': 'Chained to %s other switch(es) touching it',
 })
 for c in COLOURS:
     lang[f'item.ccsn.network_cable_{c}'] = ' '.join(w.capitalize() for w in c.split('_')) + ' Network Cable'

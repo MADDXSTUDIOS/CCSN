@@ -312,6 +312,8 @@ public final class NetworkCableBlockEntity extends BlockEntity implements Networ
             return cable.node(colour);
         }
         if (be instanceof WallJackBlockEntity jack) return jack.feeds(dir, colour) ? jack.node() : null;
+        // A switch takes every run on every side but its front (see SwitchPorts).
+        if (be instanceof NetworkSwitchBlockEntity sw) return sw.accepts(dir.getOpposite()) ? sw.node() : null;
 
         BlockPos jackPos = other.relative(dir);
         if (level.isLoaded(jackPos)

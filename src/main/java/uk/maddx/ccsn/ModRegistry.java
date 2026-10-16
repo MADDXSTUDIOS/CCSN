@@ -34,6 +34,8 @@ import uk.maddx.ccsn.network.CableLanes;
 import uk.maddx.ccsn.network.NetworkCableBlock;
 import uk.maddx.ccsn.network.NetworkCableBlockEntity;
 import uk.maddx.ccsn.network.NetworkCableItem;
+import uk.maddx.ccsn.network.NetworkSwitchBlock;
+import uk.maddx.ccsn.network.NetworkSwitchBlockEntity;
 import uk.maddx.ccsn.network.WallJackBlock;
 import uk.maddx.ccsn.network.WallJackBlockEntity;
 import uk.maddx.ccsn.network.WrenchItem;
@@ -165,6 +167,20 @@ public final class ModRegistry {
         BLOCK_ENTITIES.register("wall_jack",
             () -> BlockEntityType.Builder.of(WallJackBlockEntity::new, WALL_JACK.get()).build(null));
 
+    public static final DeferredBlock<NetworkSwitchBlock> NETWORK_SWITCH = BLOCKS.register("network_switch", () -> new NetworkSwitchBlock(
+        BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .strength(2.0f, 6.0f)
+            .sound(SoundType.METAL)
+    ));
+
+    public static final DeferredItem<BlockItem> NETWORK_SWITCH_ITEM =
+        ITEMS.register("network_switch", () -> new BlockItem(NETWORK_SWITCH.get(), new Item.Properties()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NetworkSwitchBlockEntity>> NETWORK_SWITCH_BLOCK_ENTITY =
+        BLOCK_ENTITIES.register("network_switch",
+            () -> BlockEntityType.Builder.of(NetworkSwitchBlockEntity::new, NETWORK_SWITCH.get()).build(null));
+
     // ---- Creative tab ----
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main", () ->
@@ -179,6 +195,7 @@ public final class ModRegistry {
                 output.accept(CHIPSET_T1.get());
                 output.accept(CHIPSET_T2.get());
                 output.accept(CHIPSET_T3.get());
+                output.accept(NETWORK_SWITCH_ITEM.get());
                 output.accept(WALL_JACK_ITEM.get());
                 output.accept(WRENCH.get());
                 output.accept(CABLE_TRAY.get());

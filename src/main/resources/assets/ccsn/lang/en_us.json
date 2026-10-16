@@ -62,5 +62,11 @@
   "chat.ccsn.wrench.cover_none": "none",
   "item.ccsn.cable_tray": "Cable Tray",
   "item.ccsn.cable_trunking": "Cable Trunking",
-  "item.ccsn.wrench": "Network Wrench"
+  "item.ccsn.wrench": "Network Wrench",
+  "block.ccsn.network_switch": "Network Switch",
+  "chat.ccsn.switch.title": "Network Switch",
+  "chat.ccsn.switch.port": "%s %s",
+  "chat.ccsn.switch.ports": "Ports in use (%s of %s): %s",
+  "chat.ccsn.switch.no_ports": "No runs plugged in. Run network cable into any side but the front.",
+  "chat.ccsn.switch.chained": "Chained to %s other switch(es) touching it"
 }

@@ -4,7 +4,7 @@ Enterprise infrastructure for CC:Tweaked on NeoForge 1.21.1: NAS storage with
 hot-swap drives, office network cabling and wall jacks, and (coming) network
 switches, server racks and blades.
 
-**Status: v0.3.7 (test build).** Requires CC:Tweaked 1.120.x.
+**Status: v0.3.8 (test build).** Requires CC:Tweaked 1.120.x.
 
 ## Getting it
 
@@ -58,7 +58,9 @@ plain CC cable. Our cable is the structured cabling in the walls between them.
     stone, concrete...) and it looks and acts like that block: solid, blocks
     light. Sneak + right-click to place the block next to the cable instead.
   - **Network Wrench**: sneak + right-click a cable to take its cover off (you
-    get it back); right-click to see its runs and cover, or a jack's status.
+    get it back); right-click to see its runs and cover, or a jack's or
+    switch's status. **While you hold it**, every run within 24 blocks shows as
+    coloured outlines through walls, floors and disguises.
 - **Wall Jack**: goes on a wall, floor or ceiling. The back plugs into network
   cable directly behind it, **or through the wall**: run the cable behind a
   one-block wall and put the jack on the room side. CC grey cable or a wired
@@ -70,8 +72,15 @@ plain CC cable. Our cable is the structured cabling in the walls between them.
   Jacks next to each other never connect to each other.
 - **Status check:** right-click a jack with an empty hand to see its run, what's
   plugged in, and which devices it can see on the network.
-- CC's grey cable and modems never connect to our cable directly; the wall
-  jack is the only way in.
+- **Network Switch**: the hub. Every run of network cable touching any side
+  but the front plugs into the port for its colour (16 ports, one per colour)
+  and the switch joins them all into one network. Switches touching each other
+  chain together. The front shows a light per port in its colour while a run is
+  plugged in, plus an amber activity light that flickers while modem messages
+  (rednet and so on) cross the network. Right-click it to see which ports are
+  in use and what's on the network. VLANs, a GUI and a Lua API are coming.
+- CC's grey cable and modems never connect to our cable or switches directly;
+  the wall jack is the only way in.
 
 Example: printer + wired modem → grey cable → wall jack → red run → wall jack
 → grey cable → computer + wired modem. Right-click both modems as normal.

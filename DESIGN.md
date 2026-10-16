@@ -125,7 +125,8 @@ Rules:
   - **Network Wrench**: sneak + right-click takes the cover off and gives it
     back; right-click shows runs + cover (or a jack's status).
   - Breaking the cable drops its runs plus the cover.
-  - Later: holding the wrench shows hidden runs through walls.
+  - Holding the wrench (either hand, v0.3.8) shows every run within 24 blocks
+    as coloured outlines through walls, floors and disguises.
 
 ### Wall Jack
 - Faceplate on a wall, floor or ceiling, fitted to the block behind it.
@@ -139,12 +140,29 @@ Rules:
 - Empty-hand right-click: status (run, through the wall or not, what's plugged
   in, devices visible on the network).
 
-### Network Switch
-- The hub: runs come in on several faces, so it has more ports than one cable
-  block can carry. Switch to switch extends the network.
-- Front: status LED per port. Port 1 uplink.
-- **Extras (later build):** GUI with per-port on/off, labels, traffic counters,
-  VLAN colours; Lua peripheral to control ports and read stats.
+### Network Switch (v0.3.8)
+- Full block, port panel on the front (faces whoever places it).
+- **Ports: one per colour, 16 in all** (decided; may change with use cases).
+  Every run of network cable touching any side but the front plugs into the
+  port for its colour, and the switch joins them all into one network. What a
+  port is lives in one place (`SwitchPorts`), so it can change later (per side,
+  fewer ports, numbered jacks) without touching the rest.
+- A run passing along a switch's side is plugged in too (cable joins whatever
+  it touches); route round it, or turn the port off once the GUI exists.
+- **Chaining:** switches touching each other (not by their fronts) join; so do
+  switches with a run between them.
+- **CC kit can't plug in directly** (decided): wall jacks stay the only way in.
+- **Lights:** each port has a link light in its colour (lit while a run is
+  plugged in) and an amber activity light that flickers while modem messages
+  cross the network. The switch listens on its node for every packet (CC's
+  PacketReceiver), and sends clients a block event at most every 4 ticks.
+  Peripheral calls over the network (reading a NAS, say) aren't messages, so
+  they don't flicker it.
+- Right-click empty-handed (or with the wrench): ports in use, chained
+  switches, devices on the network.
+- **Extras (next build):** GUI with per-port on/off, labels, traffic counters,
+  VLAN colours (separate networks through one switch: one wired node per
+  VLAN); Lua peripheral to control ports and read stats.
 
 ### Patch Panel
 - Comms-cupboard version of many jacks in one (half-height).
@@ -153,8 +171,7 @@ Rules:
 - Dropped for now: grey cable plus our runs cover everything. Maybe later for looks.
 
 ### Later
-- **v0.5:** Router/Gateway, Wireless Access Point, Print Server, cable trays
-  and conduit (decorative runs).
+- **v0.5:** Router/Gateway, Wireless Access Point, Print Server.
 - **Later:** fibre (long distance; unloaded chunks are the hard part), badge
   or card reader (tap to log in, tied to directory accounts), chunk-loading
   racks (config option).
@@ -176,13 +193,13 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 | v0.3.5 | Covers: disguise, cable tray, trunking + wrench ✅ tested in-game (fix list below came out of it) |
 | v0.3.6 | Polish: fix list 1-6 and 8-12 (layered strands, ladder tray, risers, supports, trunking ends, 6-8 runs per block) ✅ tested in-game |
 | v0.3.7 | Trunking fills outside corners and caps mismatched joins; deeper tray so runs sit inside the rails ✅ tested in-game |
-| v0.3.x | Network Switch (hub, ports, chaining) |
-| v0.3.x | Patch Panel, switch extras (VLANs, GUI, Lua) |
+| v0.3.8 | Network Switch (16 colour ports, chaining, port lights with traffic) + wrench x-ray 🧪 |
+| v0.3.9 | Patch Panel, switch extras (VLANs, GUI, Lua) |
 | v0.4 | Server Rack and T1–T3 blades |
-| v0.5 | Router, Wireless Access Point, Print Server, cable trays and conduit |
+| v0.5 | Router, Wireless Access Point, Print Server |
 | Later | Fibre, badge reader, chunk-loading racks |
 
-## Fix list (cosmetic, from v0.3.5 testing; all but 7 done in v0.3.6)
+## Fix list (cosmetic, from v0.3.5 testing; done in v0.3.6, 7 in v0.3.8)
 
 1. ✅ **Runs cut through each other at turns.** Fixed lanes stop overlap when runs
    are parallel, but two colours at the same height (e.g. yellow and light
@@ -203,7 +220,7 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
    that's open to the air.
 6. ✅ **Tray steel texture reads as stone:** make it look like galvanised sheet
    steel (smoother, fewer speckles, edge highlights).
-7. (Feature still to do) holding the wrench shows hidden runs through walls.
+7. ✅ (v0.3.8) holding the wrench shows hidden runs through walls.
 9. ✅ **Open ladder tray floor:** the dark stripes on the tray floor are painted
    on. Make the floor real rungs (separate 2 px bars with actual gaps) so you
    can see the cables through it from below. Rungs must always run ACROSS the

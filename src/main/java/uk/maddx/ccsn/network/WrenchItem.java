@@ -16,8 +16,8 @@ import net.minecraft.world.level.Level;
 
 /**
  * Network Wrench. On a network cable: sneak + right-click takes off its cover (tray, trunking or
- * disguise) and gives it back; right-click says which runs and cover it has. On a wall jack:
- * right-click shows the jack's status.
+ * disguise) and gives it back; right-click says which runs and cover it has. On a wall jack or a
+ * switch: right-click shows its status. Held in either hand, it shows runs through walls (client).
  */
 public final class WrenchItem extends Item {
     public WrenchItem(Properties properties) {
@@ -33,6 +33,10 @@ public final class WrenchItem extends Item {
 
         if (level.getBlockEntity(pos) instanceof WallJackBlockEntity jack) {
             if (!level.isClientSide) jack.sendStatus(player);
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+        if (level.getBlockEntity(pos) instanceof NetworkSwitchBlockEntity sw) {
+            if (!level.isClientSide) sw.sendStatus(player);
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
         if (!(level.getBlockEntity(pos) instanceof NetworkCableBlockEntity cable)) return InteractionResult.PASS;
