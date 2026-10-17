@@ -349,6 +349,37 @@ switch (one network, every computer sees every device) or run jack to jack.
     record (colours int + masks long + cover bits). Do item 1 (hops at turns)
     properly first, as more runs means more crossings.
 
+## Look and feel (concepts, 17 Oct; not final)
+
+Rendered concept line-ups exist for the whole range. Direction so far:
+- **Keep CC's pixel-art language** on every model: 16 px textures, flat
+  shading, dark 1 px edges, chunky simple details. New computers reuse CC's own
+  computer art in a new casing colour (like CC's command computer does).
+- **Colour families:** graphite for hardware (NAS, switch, server rack, patch
+  panel, router, Workstation, advanced speaker); cream for fittings (wall jack,
+  trunking, dock, access point); galvanised steel for the tray. Access points
+  also come in graphite.
+- **Server rack: 1 wide x 2 tall** (Aaron), so it can't be mistaken for the
+  NAS: tall cabinet, vented top, blades with handles and lights. Two blocks
+  tall means room for 8 blade slots instead of 4 (to decide).
+- **Switch front:** rarely seen in a comms cupboard, so keep it as is; its
+  lights already flicker with traffic.
+- **Laptop:** works like the Workstation (same bigger screen) but portable,
+  with a wired modem, speaker and wireless modem built in. Graphite plus other
+  colours (dyeable, like CC pocket computers and turtles). Usable in the hand on
+  wireless, through access points. Plugs in by **A:** sitting on a dock, or
+  **B:** a short lead from a wall jack beside it (to decide; B needs no new
+  block).
+- **Access points:** a good use for bundled runs, one run feeding every access
+  point while the other runs go elsewhere.
+- **Advanced speaker (idea, for Phoenix Music):** CC's speaker compresses all
+  audio to DFPWM (1-bit) before sending it to players, which is most of the
+  quality loss, and volume is fixed per queued chunk. Ours could send better
+  audio (8/16-bit PCM, maybe stereo; costs bandwidth per listener), change
+  volume/pause/skip live, and play in sync across a group of speakers
+  (multi-room, ties into switch groups). Our own peripheral and our own client
+  audio player, so little reliance on CC internals.
+
 ## Test programs (later)
 
 GUI test programs to go with `nastest`, for testing in-game:
