@@ -2,6 +2,15 @@
 
 Mod ID `ccsn` · NeoForge 1.21.1 · CC:Tweaked add-on · Author: MADD X Studios
 
+> **New name (decided 17 Oct): CC: Phoenix Pro Hardware & Networking**, mod ID
+> `phoenixhw`. Part of the Phoenix family (Phoenix OS, Phoenix Music). The mod
+> outgrew "Servers & Networking" (Workstation, laptop, speakers, monitors...).
+> Checked: no clash on CurseForge or Modrinth. "Advanced" avoided on purpose
+> (Advanced Peripherals, and CC's own gold tier). The rename is its own build,
+> before any public release: every `ccsn:` ID maps to `phoenixhw:` so existing
+> worlds carry over, and NAS drive files in `world/computercraft/ccsn_drives/`
+> stay readable. Code, assets, config, docs and the GitHub repo follow.
+
 Enterprise infrastructure for CC:Tweaked: server racks, blade servers, NAS
 storage and proper office networking. Generic and public; any world-specific
 branding is done with a resource pack in the user's own modpack.
