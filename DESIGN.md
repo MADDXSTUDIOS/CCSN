@@ -61,6 +61,26 @@ branding is done with a resource pack in the user's own modpack.
 - **Front model:** per-blade LEDs (green running, red crashed, off).
 - Uses CC internals, so the version lock and safety net apply.
 
+### Workstation (high-res computer, with v0.4)
+- An advanced computer with a bigger screen, so Phoenix OS has room to
+  breathe. Still plain CraftOS: nothing breaks, programs just see a bigger
+  `term.getSize()`. Phoenix OS must still run on a standard advanced computer.
+- CC 1.120 already supports per-computer terminal sizes (the
+  `computercraft:terminal_size` item component, up to 255 x 255 characters),
+  so the computer itself needs no CC internals. Start at double size (102 x 38).
+- Catch: CC draws every character at a fixed size, so a bigger terminal needs
+  a bigger window (double fits at GUI scale 2 on 1080p, not 3). Fix: our own
+  computer screen that draws the terminal smaller and sharp. That part uses CC
+  internals, same as the blades, hence building it alongside the rack.
+- "Higher resolution" here means more characters: still 16 colours at a time
+  (palette fully customisable). Graphics come from teletext block characters
+  (2 x 3 pixels per character, Pixelbox-style); Phoenix OS should use those on
+  any computer anyway.
+- **Maybe later:** real pixel graphics. Big job (new terminal mode, syncing
+  pixel data, own renderer). If we do it, copy CraftOS-PC's graphics mode API
+  (`term.setGraphicsMode`, `term.setPixel`...) so Phoenix OS can be built and
+  tested in CraftOS-PC and run in-game unchanged.
+
 ### Network model (agreed 2026-10-17)
 
 **What this mod is for:** the hardware layer Phoenix OS is built on. It
@@ -283,7 +303,7 @@ switch (one network, every computer sees every device) or run jack to jack.
 | v0.3.8 | Network Switch (16 colour ports, chaining, port lights with traffic) + wrench x-ray 🧪 |
 | v0.3.9 | Managed switch: groups (VLANs), message routing between groups, GUI, Lua API (see network model) |
 | v0.3.10 | Patch Panel |
-| v0.4 | Server Rack and T1–T3 blades |
+| v0.4 | Server Rack and T1–T3 blades; Workstation (high-res computer) |
 | v0.5 | Router, Wireless Access Point, Print Server |
 | Later | Fibre, badge reader, chunk-loading racks |
 
@@ -328,6 +348,14 @@ switch (one network, every computer sees every device) or run jack to jack.
     single long at 8 runs (16 + 8x6 + 3 bits = 67), so switch it to a small
     record (colours int + masks long + cover bits). Do item 1 (hops at turns)
     properly first, as more runs means more crossings.
+
+## Test programs (later)
+
+GUI test programs to go with `nastest`, for testing in-game:
+- **NAS browser:** list NASes, then the drives in each, then the files on a
+  drive.
+- **Switch tester:** ports, groups, routing and traffic for a switch (once the
+  managed switch has its Lua API).
 
 ## Release checklist
 
