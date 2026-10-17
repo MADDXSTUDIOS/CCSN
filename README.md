@@ -123,4 +123,4 @@ wget https://raw.githubusercontent.com/MADDXSTUDIOS/CCSN/main/lua/nastest.lua na
   Minecraft stubs and proves no two strands (or a strand and the tray) ever
   overlap; `tools/geocheck/run.sh scenes out/` renders preview scenes with
   `tools/zrender.py`.
-- See `DESIGN.md` for the full plan and roadmap.
+- New to the project? Start with `HANDOVER.md`, then `DESIGN.md` for the full plan and roadmap.
