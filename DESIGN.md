@@ -24,10 +24,23 @@ branding is done with a resource pack in the user's own modpack.
   switch off (the rack GUI says "incompatible CC version"). Everything else
   keeps working.
 - **Public API first:** NAS, switch, cables and jacks use CC's public API
-  (wired nodes and the wired element capability).
-  Only blades need CC internals.
+  (wired nodes and the wired element capability). Only our own computers
+  (blades, Workstation, laptop) need CC internals.
 - **Config everything:** capacities and recipes are configurable so pack
   makers can balance them.
+- **Feel native to CC (agreed 17 Oct):** every block behaves the way CC's own
+  blocks do: same Lua style, same event style, found with `peripheral.find`,
+  mixes freely with CC's cable, modems and computers. Nobody should be able to
+  tell where CC stops and we start.
+- **Upgrades are supersets:** an improved CC block keeps CC's whole API and
+  type (an advanced speaker is still a `"speaker"`, via CC's additional
+  peripheral types), so existing programs work on it unchanged; extras sit on
+  top.
+- **Hardware, not policy:** we build hardware with clean, generic Lua APIs and
+  do only what software can't do itself (keep networks apart, pass messages,
+  report ports/traffic/drives/blades). Phoenix OS (its server manager and so
+  on) is one program using those APIs; anyone could build their own OS or admin
+  tools on the same APIs. No Phoenix-only functions.
 
 ## Blocks and items
 
