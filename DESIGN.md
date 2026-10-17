@@ -61,6 +61,89 @@ branding is done with a resource pack in the user's own modpack.
 - **Front model:** per-blade LEDs (green running, red crashed, off).
 - Uses CC internals, so the version lock and safety net apply.
 
+### Network model (agreed 2026-10-17)
+
+**What this mod is for:** the hardware layer Phoenix OS is built on. It
+replaces the idea of using OpenComputers entirely (OC is off the table).
+Phoenix OS's needs drive the design; everything stays generic so anyone can
+use it without Phoenix OS.
+
+**The CC rules everything hangs on:**
+- Anything on a wired network can see and use every device on it. There are
+  no permissions in between.
+- One modem = one network. A computer can sit on several networks by having
+  several modems.
+- Anything else touching two networks (cable, jack, switch port) merges them.
+- So "isolated" in CC can only mean "on a separate network"; the question is
+  what may cross between networks.
+
+**Three layers:**
+1. **Cabling (mod):** each run (colour) is a separate network. Bundling lets
+   several networks share one route. A jack decides which network the device
+   plugged into it joins; re-patching a jack moves a device between networks.
+2. **Switch (mod):** groups its ports into networks and passes messages
+   between groups where allowed (below). GUI + Lua API.
+3. **Phoenix OS (software):** rooms, users, permissions, who can print where,
+   the server manager's view of every room. Drives switches through Lua.
+
+**The two rules:**
+1. **Devices stay in their group.** Printers, speakers, monitors... are only
+   visible on their own group's network.
+2. **Messages can cross.** Modem/rednet messages (logins, file requests, print
+   jobs, intranet pages) are passed between groups the switch is told to route.
+
+**The switch:**
+- Every port (see `SwitchPorts`; one per colour for now) belongs to a group.
+  Same group = one network (devices and messages). Different groups = separate
+  networks; messages pass between them only where routing is turned on.
+- **Out of the box every port is in one group**, so a fresh switch works like
+  a plain switch. Colours only identify the ports. Splitting ports into groups
+  and turning routing on is done in the switch GUI, or by Phoenix OS over Lua.
+- **Room switch** (the typical managed setup): the room's ports in the room
+  group; the uplink port (to the comms cupboard / backbone) in its own group
+  with routing on. The room's devices stay in the room; its computers still
+  reach Active Directory, file servers and intranet hosts by messages.
+- **Backbone:** Phoenix Core (directory, logins, policies), file servers,
+  intranet hosting. The NAS sits on a storage group only Core / the file
+  server is on, so room computers get files through Core's login (messages),
+  never by mounting the NAS directly.
+- **Server manager:** the switch reports which devices are on which group and
+  lets Core move ports between groups, turn ports and routing on and off, and
+  read traffic counters. Core sees every room without merging them.
+- **How (implementation):** one wired node per group; each port links to its
+  group's node. Each group node has a packet listener (as the traffic lights
+  already use) and re-sends what it hears onto the nodes of groups it routes
+  to (each group element is a CC WiredSender). Never relay a packet a CCSN
+  switch sent (one hop, so no loops between switches); rednet drops its own
+  duplicates.
+
+**Use cases this covers:**
+- **Office rooms:** isolated rooms, still on Active Directory / NAS / intranet.
+- **Shared office building:** each tenant its own group, bundled through the
+  same trunking, nothing routed between them.
+- **Phoenix Manor AV:** indoor and outdoor speakers as two groups. For a show,
+  move the outdoor port into the indoor group (GUI, or Core over Lua), or
+  re-patch the outdoor jacks onto the indoor run by hand.
+- **Printing to another office:** Phoenix OS sends the job as a message to a
+  print server or computer in that room, which prints it. Permissions are
+  Phoenix OS's call.
+
+**Not doing (over-engineering):**
+- Per-user permissions in hardware: the switch knows groups, Phoenix OS knows
+  users.
+- Using a device in another group directly (proxying peripheral calls across
+  networks): send a message to something in that group instead.
+- Multi-site routing before the router (v0.5): routing between groups on one
+  switch is enough to start.
+
+**Still open:**
+- How chained switches share groups (does a link between switches carry one
+  group, or all of them like a trunk?).
+- Which group the switch's own Lua peripheral shows up on (a chosen
+  management group?).
+- Ports per colour vs per side and colour: revisit if a room switch needs two
+  runs of the same colour.
+
 ### How networking works (v0.3)
 
 Everything is still **one normal CC wired network**. Computers and devices
@@ -77,11 +160,13 @@ Rules:
   modems. It isn't exposed to CC at all.
 - **The wall jack is the only bridge.** Its back plugs into our cable behind
   it; its front takes CC grey cable or a wired modem.
-- **Colours keep runs apart; they are not separate networks.** Like real
-  ethernet, each jack has its own run back to the switch. Runs sharing a block
-  never merge mid-wall, so the switch knows which jack is on which port.
+- **Colours keep runs apart.** Like real ethernet, each jack has its own run
+  back to the switch. Runs sharing a block never merge mid-wall, so the switch
+  knows which jack is on which port. Each run is its own network until a
+  switch (or a jack) joins it to something.
 - **The switch joins runs** into one network by default. Switches can chain
-  to extend the network. VLANs are an optional extra to keep rooms apart.
+  to extend the network. Groups (VLANs) keep rooms apart: see the network
+  model above.
 - A run can also go straight jack to jack, no switch (point to point).
 - Our own blocks (NAS, switch, rack) will later plug straight into our cable
   without a CC modem: CC's public API lets a wired node share peripherals.
@@ -160,9 +245,9 @@ Rules:
   they don't flicker it.
 - Right-click empty-handed (or with the wrench): ports in use, chained
   switches, devices on the network.
-- **Extras (next build):** GUI with per-port on/off, labels, traffic counters,
-  VLAN colours (separate networks through one switch: one wired node per
-  VLAN); Lua peripheral to control ports and read stats.
+- **Next build (managed switch):** groups and message routing as in the
+  network model above; GUI with ports to groups, routing, per-port on/off,
+  labels, traffic counters; Lua peripheral for Phoenix OS.
 
 ### Patch Panel
 - Comms-cupboard version of many jacks in one (half-height).
@@ -179,8 +264,10 @@ Rules:
 ## Typical office
 
 Computer + modem → grey cable → Wall Jack → coloured run inside a disguised
-wall → Switch (or Patch Panel → Switch) in the comms cupboard. Every computer
-sees every device as on a normal CC network. Small setups can run jack to jack.
+wall → room switch (or Patch Panel → switch) → uplink to the comms cupboard /
+backbone (Phoenix Core, file server, intranet). The room's devices stay in the
+room; its computers reach the backbone by messages. Small setups can skip the
+switch (one network, every computer sees every device) or run jack to jack.
 
 ## Roadmap
 
@@ -194,7 +281,8 @@ sees every device as on a normal CC network. Small setups can run jack to jack.
 | v0.3.6 | Polish: fix list 1-6 and 8-12 (layered strands, ladder tray, risers, supports, trunking ends, 6-8 runs per block) ✅ tested in-game |
 | v0.3.7 | Trunking fills outside corners and caps mismatched joins; deeper tray so runs sit inside the rails ✅ tested in-game |
 | v0.3.8 | Network Switch (16 colour ports, chaining, port lights with traffic) + wrench x-ray 🧪 |
-| v0.3.9 | Patch Panel, switch extras (VLANs, GUI, Lua) |
+| v0.3.9 | Managed switch: groups (VLANs), message routing between groups, GUI, Lua API (see network model) |
+| v0.3.10 | Patch Panel |
 | v0.4 | Server Rack and T1–T3 blades |
 | v0.5 | Router, Wireless Access Point, Print Server |
 | Later | Fibre, badge reader, chunk-loading racks |
